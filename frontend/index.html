@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AutoParallel — Source-to-Source Compiler</title>
+  <link rel="stylesheet" href="/static/style.css"/>
+</head>
+<body>
+  <header>
+    <div class="logo">AutoParallel</div>
+    <span class="tagline">Automatic Parallelization via Dependence Analysis</span>
+    <nav>
+      <a href="#" onclick="showView('main')">Compiler</a>
+      <a href="#" onclick="showView('history')">History</a>
+    </nav>
+  </header>
+
+  <div id="view-main">
+    <div class="workspace">
+
+      <!-- LEFT PANEL -->
+      <div class="panel left-panel" id="left-panel">
+        <div class="panel-header">
+          <span>Source Code</span>
+          <div class="controls">
+            <select id="lang-select" onchange="onLangChange()">
+              <option value="">Auto Detect</option>
+              <option value="python">Python</option>
+              <option value="c">C</option>
+              <option value="cpp">C++</option>
+              <option value="java">Java</option>
+            </select>
+            <button class="btn-secondary" onclick="loadExample()">Load Example</button>
+            <label class="btn-secondary btn-upload" title="Upload a source file">
+              Upload File
+              <input type="file" id="file-input" accept=".py,.c,.cpp,.cc,.cxx,.h,.hpp,.java"
+                     onchange="handleFileUpload(event)" style="display:none"/>
+            </label>
+            <button class="btn-convert" onclick="analyze()">Convert</button>
+          </div>
+        </div>
+
+        <div id="drop-zone" class="drop-zone">
+          <div class="drop-zone-inner">
+            <div class="drop-icon">[ + ]</div>
+            <p>Drop a source file here</p>
+            <p class="drop-hint">or use the Upload File button above</p>
+            <p class="drop-hint">Accepted: .py &nbsp; .c &nbsp; .cpp &nbsp; .h &nbsp; .hpp &nbsp; .java</p>
+            <p style="margin-top:10px;font-size:0.8rem">
+              <a id="type-here-link" href="#" style="color:var(--accent);text-decoration:underline;" onclick="return false;">or click here to type code</a>
+            </p>
+          </div>
+        </div>
+
+        <textarea id="code-input" spellcheck="false"
+                  placeholder="Paste your sequential code here, or upload a file..."></textarea>
+
+        <div id="validation-error" class="validation-error hidden"></div>
+
+        <div class="input-footer">
+          <span id="detected-lang" class="detected-lang"></span>
+          <span id="file-name-badge" class="file-name-badge hidden"></span>
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL -->
+      <div class="panel right-panel" id="right-panel">
+        <div class="tabs">
+          <button class="tab active" id="tab-btn-parallel-code" onclick="switchTab('parallel-code')">Parallel Code</button>
+          <button class="tab" id="tab-btn-ast-view"       onclick="switchTab('ast-view')">AST</button>
+          <button class="tab" id="tab-btn-dep-view"       onclick="switchTab('dep-view')">Dependencies</button>
+          <button class="tab" id="tab-btn-explain-view"   onclick="switchTab('explain-view')">Explanation</button>
+          <button class="tab" id="tab-btn-perf-view"      onclick="switchTab('perf-view')">Performance</button>
+          <button class="tab" id="tab-btn-valid-view"     onclick="switchTab('valid-view')">Validation</button>
+          <button class="tab" id="tab-btn-suggest-view"   onclick="switchTab('suggest-view')">Suggestions</button>
+          <button class="tab" id="tab-btn-transform-view" onclick="switchTab('transform-view')">Transform</button>
+          <button class="tab" id="tab-btn-diff-view"      onclick="switchTab('diff-view')">Diff</button>
+        </div>
+
+        <div id="loading" class="loading hidden">
+          <div class="spinner"></div><span>Analyzing...</span>
+        </div>
+
+        <!-- Parallel Code -->
+        <div id="tab-parallel-code" class="tab-content active">
+          <div class="tab-toolbar">
+            <button onclick="copyCode()">Copy</button>
+            <button onclick="downloadCode()">Download</button>
+            <span id="parallel-summary" class="summary-badge"></span>
+          </div>
+          <pre id="parallel-output" class="code-output">// Parallel code will appear here after conversion.</pre>
+        </div>
+
+        <!-- AST -->
+        <div id="tab-ast-view" class="tab-content">
+          <div class="ast-toolbar">
+            <div class="legend">
+              <span class="dot parallel"></span>Parallelizable
+              <span class="dot dependent"></span>Has Dependency
+              <span class="dot loop"></span>Loop
+              <span class="dot default"></span>Other
+            </div>
+            <div style="display:flex;gap:8px;margin-left:auto">
+              <button class="btn-secondary" onclick="downloadASTPNG()" title="Download AST as PNG image">⬇ PNG</button>
+              <button class="btn-secondary" onclick="downloadASTText()" title="Download AST as text tree">⬇ Text</button>
+            </div>
+          </div>
+          <div id="ast-container"></div>
+        </div>
+
+        <!-- Dependencies -->
+        <div id="tab-dep-view" class="tab-content">
+          <div id="dep-container"></div>
+        </div>
+
+        <!-- Explanation -->
+        <div id="tab-explain-view" class="tab-content">
+          <div id="explanation-container"></div>
+        </div>
+
+        <!-- Performance -->
+        <div id="tab-perf-view" class="tab-content">
+          <div class="perf-toolbar">
+            <span class="perf-toolbar-label">Law:</span>
+            <div class="law-selector">
+              <button class="law-btn active" onclick="selectLaw('amdahl', this)" title="Fixed problem size — speedup bounded by sequential fraction">Amdahl</button>
+              <button class="law-btn" onclick="selectLaw('gustafson', this)" title="Scaled problem size — speedup grows linearly with cores">Gustafson</button>
+            </div>
+            <span class="perf-toolbar-sep"></span>
+            <span class="perf-toolbar-label">Cores:</span>
+            <div class="core-selector">
+              <button class="core-btn active" onclick="selectCores(2, this)">2 Cores</button>
+              <button class="core-btn" onclick="selectCores(4, this)">4 Cores</button>
+              <button class="core-btn" onclick="selectCores(8, this)">8 Cores</button>
+              <button class="core-btn" onclick="selectCores(16, this)">16 Cores</button>
+              <button class="core-btn" onclick="selectCores(32, this)">32 Cores</button>
+            </div>
+          </div>
+          <div id="perf-container" class="perf-scroll"></div>
+        </div>
+
+        <!-- Validation -->
+        <div id="tab-valid-view" class="tab-content">
+          <div id="validation-container"></div>
+        </div>
+
+        <!-- Suggestions -->
+        <div id="tab-suggest-view" class="tab-content">
+          <div id="suggestion-container"></div>
+        </div>
+
+        <!-- Transform -->
+        <div id="tab-transform-view" class="tab-content">
+          <div id="transform-container"></div>
+        </div>
+
+        <!-- Diff View -->
+        <div id="tab-diff-view" class="tab-content">
+          <div class="diff-toolbar">
+            <span class="diff-legend"><span class="diff-dot added"></span>Added</span>
+            <span class="diff-legend"><span class="diff-dot modified"></span>Modified</span>
+            <span class="diff-legend"><span class="diff-dot unchanged"></span>Unchanged</span>
+            <button onclick="exportPDF()" class="btn-export-pdf">⬇ Export PDF</button>
+          </div>
+          <div id="diff-container"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY VIEW -->
+  <div id="view-history" class="hidden">
+    <div class="history-panel">
+      <h2>Analysis History</h2>
+      <button class="btn-secondary" onclick="loadHistory()">Refresh</button>
+      <table id="history-table">
+        <thead>
+          <tr>
+            <th>ID</th><th>Language</th><th>Date</th>
+            <th>Speedup</th><th>Seq (ms)</th><th>Par (ms)</th>
+          </tr>
+        </thead>
+        <tbody id="history-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="/static/d3.v7.min.js" onerror="console.warn('Local D3 not found, trying CDN...')"></script>
+  <script>
+    if (typeof d3 === 'undefined') {
+      var s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js';
+      s.onerror = function() { console.warn('D3 CDN also failed. Visualizations will be disabled.'); };
+      document.head.appendChild(s);
+    }
+  </script>
+  <script src="/static/app.js?v=7"></script>
+</body>
+</html>

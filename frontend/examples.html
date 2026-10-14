@@ -1,0 +1,2510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AutoParallel — Code Examples</title>
+<style>
+/* ── CSS Variables (mirrors style.css) ── */
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface2: #22263a;
+  --border: #2e3250;
+  --accent: #6c63ff;
+  --accent2: #00d4aa;
+  --red: #ff5c5c;
+  --green: #4caf50;
+  --yellow: #ffc107;
+  --text: #e0e0e0;
+  --muted: #8892b0;
+  --mono: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  --font: 'Segoe UI', system-ui, sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; }
+
+/* ── Header ── */
+header {
+  display: flex; align-items: center; gap: 16px;
+  padding: 12px 24px; background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 100;
+}
+.logo { font-size: 1.4rem; font-weight: 700; color: var(--accent); letter-spacing: -0.5px; }
+.tagline { font-size: 0.8rem; color: var(--muted); flex: 1; }
+nav a { color: var(--muted); text-decoration: none; margin-left: 20px; font-size: 0.9rem; }
+nav a:hover { color: var(--accent); }
+nav a.active { color: var(--accent); }
+
+/* ── Page layout ── */
+.ex-page { max-width: 980px; margin: 0 auto; padding: 28px 24px 60px; }
+.ex-header { margin-bottom: 22px; }
+.ex-header h1 { font-size: 1.5rem; font-weight: 800; color: var(--text); margin-bottom: 5px; }
+.ex-header p  { font-size: 0.86rem; color: var(--muted); }
+
+/* ── Step labels ── */
+.step-label {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 6px;
+}
+
+/* ── Language tabs ── */
+.lang-tabs {
+  display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 24px;
+}
+.lang-tab {
+  padding: 9px 22px; background: none; border: none; color: var(--muted);
+  cursor: pointer; font-size: 0.88rem; font-weight: 600;
+  border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.15s;
+}
+.lang-tab:hover { color: var(--text); }
+.lang-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ── Dependency type navbar ── */
+.dep-nav {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;
+  padding: 14px 16px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 10px;
+}
+.dep-btn {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 8px 16px; border-radius: 8px; border: 1.5px solid var(--border);
+  background: var(--surface2); cursor: pointer; transition: all 0.15s;
+  min-width: 110px;
+}
+.dep-btn:hover { border-color: var(--accent); background: var(--surface); }
+.dep-btn.active { border-color: var(--accent); background: rgba(108,99,255,0.12); }
+.dep-btn-name { font-size: 0.82rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.dep-btn-tag {
+  font-size: 0.68rem; font-weight: 700; padding: 1px 7px;
+  border-radius: 8px; letter-spacing: 0.5px;
+}
+.dep-btn.active .dep-btn-name { color: var(--accent); }
+.tag-none { background: rgba(76,175,80,0.2);  color: #4caf50; }
+.tag-red  { background: rgba(0,212,170,0.2);  color: #00d4aa; }
+.tag-raw  { background: rgba(255,92,92,0.2);  color: #ff5c5c; }
+.tag-waw  { background: rgba(255,92,92,0.15); color: #ff8a8a; }
+.tag-rec  { background: rgba(255,193,7,0.2);  color: #ffc107; }
+
+/* ── Rate tabs ── */
+.rate-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+.rate-tab {
+  padding: 6px 18px; border-radius: 20px; border: 1px solid var(--border);
+  background: var(--surface2); color: var(--muted); cursor: pointer;
+  font-size: 0.82rem; font-weight: 600; transition: all 0.15s;
+}
+.rate-tab:hover { border-color: var(--accent); color: var(--text); }
+.rate-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.rate-tab-zero { border-color: var(--red); color: var(--red); }
+.rate-tab-zero.active { background: var(--red); color: #fff; border-color: var(--red); }
+.dep-btn-zero { border-color: var(--red) !important; }
+.dep-btn-zero.active { border-color: var(--red) !important; background: rgba(255,92,92,0.12) !important; }
+.dep-btn-zero.active .dep-btn-name { color: var(--red) !important; }
+.tag-zero { background: rgba(255,92,92,0.2); color: #ff5c5c; }
+
+/* ── Dep info banner ── */
+.dep-info {
+  padding: 12px 16px; border-radius: 8px; margin-bottom: 16px;
+  border-left: 4px solid; font-size: 0.83rem; line-height: 1.6;
+}
+.dep-info strong { display: block; font-size: 0.88rem; margin-bottom: 3px; }
+
+/* ── Example card ── */
+.example-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden;
+}
+.card-header {
+  padding: 13px 18px; background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-title { font-size: 0.92rem; font-weight: 700; color: var(--text); }
+.card-meta  { font-size: 0.76rem; color: var(--muted); margin-top: 2px; }
+.rate-badge {
+  display: inline-block; padding: 3px 12px; border-radius: 12px;
+  font-size: 0.75rem; font-weight: 700;
+}
+.rate-100 { background: rgba(76,175,80,0.2);  color: #4caf50; }
+.rate-75  { background: rgba(0,212,170,0.2);  color: #00d4aa; }
+.rate-50  { background: rgba(255,193,7,0.2);  color: #ffc107; }
+
+/* ── Loop table ── */
+.loop-table { width: 100%; border-collapse: collapse; font-size: 0.81rem; }
+.loop-table th {
+  padding: 8px 14px; color: var(--muted); font-weight: 600;
+  text-align: left; background: var(--surface2);
+}
+.loop-table td { padding: 8px 14px; border-top: 1px solid var(--border); }
+.loop-safe    { color: #4caf50; font-weight: 700; }
+.loop-blocked { color: #ff5c5c; font-weight: 700; }
+.dep-chip {
+  display: inline-block; font-size: 0.7rem; padding: 1px 8px;
+  border-radius: 8px; font-weight: 700; margin-left: 4px;
+}
+
+/* ── Code block ── */
+.code-wrap { position: relative; }
+.code-block {
+  margin: 0; padding: 16px 20px; font-family: var(--mono);
+  font-size: 0.8rem; line-height: 1.7; overflow-x: auto;
+  white-space: pre; color: var(--text); background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+.copy-btn {
+  position: absolute; top: 10px; right: 12px;
+  background: var(--surface2); color: var(--muted); border: 1px solid var(--border);
+  padding: 4px 12px; border-radius: 5px; cursor: pointer; font-size: 0.74rem;
+}
+.copy-btn:hover { color: var(--text); border-color: var(--accent); }
+.try-btn {
+  display: block; width: calc(100% - 32px); margin: 12px 16px;
+  padding: 10px; background: var(--accent); color: #fff; border: none;
+  border-radius: 7px; cursor: pointer; font-size: 0.88rem; font-weight: 700;
+  text-align: center; text-decoration: none; transition: opacity 0.2s;
+}
+.try-btn:hover { opacity: 0.85; }
+
+/* ── Unavailable notice ── */
+.unavailable {
+  padding: 32px; text-align: center; color: var(--muted); font-size: 0.88rem;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+}
+
+/* ── Dependency reason panel ── */
+.dep-reason-panel {
+  margin: 0 16px 12px;
+  animation: slideDown 0.2s ease;
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.dep-reason-content {
+  border: 1.5px solid; border-radius: 8px;
+  background: var(--surface2); overflow: hidden;
+}
+.dep-reason-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; background: rgba(0,0,0,0.2);
+  border-bottom: 1px solid var(--border);
+}
+.dep-reason-header strong { flex: 1; font-size: 0.88rem; }
+.dep-reason-close {
+  background: none; border: none; color: var(--muted); cursor: pointer;
+  font-size: 1rem; padding: 0 4px; line-height: 1;
+}
+.dep-reason-close:hover { color: var(--text); }
+.dep-reason-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.dep-reason-section { font-size: 0.82rem; }
+.dep-reason-label { font-weight: 700; color: var(--muted); margin-bottom: 3px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+.dep-reason-text { color: var(--text); line-height: 1.6; }
+.dep-reason-note { color: var(--accent2); font-family: var(--mono); font-size: 0.78rem; }
+.dep-reason-example {
+  font-family: var(--mono); font-size: 0.78rem; color: var(--text);
+  background: var(--bg); padding: 8px 10px; border-radius: 5px;
+  border-left: 3px solid var(--border);
+}
+.loop-table tr.dep-row-active td { background: rgba(108,99,255,0.08); }
+.loop-table tr[onclick]:hover td { background: rgba(255,255,255,0.03); }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">AutoParallel</div>
+  <span class="tagline">Automatic Parallelization via Dependence Analysis</span>
+  <nav>
+    <a href="/">Compiler</a>
+    <a href="/examples" class="active">Examples</a>
+  </nav>
+</header>
+
+<div class="ex-page">
+  <div class="ex-header">
+    <h1>Code Examples</h1>
+    <p>Step 1: choose a language. Step 2: choose a dependency type. Step 3: choose a parallelization rate. Click "Try in Compiler" to load directly.</p>
+  </div>
+
+  <!-- STEP 1: Language -->
+  <div class="step-label">Step 1 — Select Language</div>
+  <div class="lang-tabs">
+    <button class="lang-tab active" onclick="setLang('cpp',    this)">C++</button>
+    <button class="lang-tab"        onclick="setLang('c',      this)">C</button>
+    <button class="lang-tab"        onclick="setLang('java',   this)">Java</button>
+    <button class="lang-tab"        onclick="setLang('python', this)">Python</button>
+  </div>
+
+  <!-- STEP 2: Dependency type -->
+  <div class="step-label">Step 2 — Select Dependency Type</div>
+  <div class="dep-nav" id="dep-nav">
+    <button class="dep-btn active" onclick="setDep('none', this)">
+      <span class="dep-btn-name">None</span>
+      <span class="dep-btn-tag tag-none">Independent</span>
+    </button>
+    <button class="dep-btn" onclick="setDep('reduction', this)">
+      <span class="dep-btn-name">Reduction</span>
+      <span class="dep-btn-tag tag-red">sum += a[i]</span>
+    </button>
+    <button class="dep-btn" onclick="setDep('raw', this)">
+      <span class="dep-btn-name">RAW</span>
+      <span class="dep-btn-tag tag-raw">Read After Write</span>
+    </button>
+    <button class="dep-btn" onclick="setDep('waw', this)">
+      <span class="dep-btn-name">WAW</span>
+      <span class="dep-btn-tag tag-waw">Write After Write</span>
+    </button>
+    <button class="dep-btn" onclick="setDep('recurrence', this)">
+      <span class="dep-btn-name">Recurrence</span>
+      <span class="dep-btn-tag tag-rec">a[i] = f(a[i-1])</span>
+    </button>
+    <button class="dep-btn" onclick="setDep('alldeps', this)">
+      <span class="dep-btn-name">All Deps</span>
+      <span class="dep-btn-tag tag-raw">Mixed</span>
+    </button>
+    <button class="dep-btn dep-btn-zero" onclick="setDep('zero', this)">
+      <span class="dep-btn-name">0% Parallel</span>
+      <span class="dep-btn-tag tag-zero">All Blocked</span>
+    </button>
+  </div>
+
+  <!-- STEP 3: Rate -->
+  <div class="step-label">Step 3 — Select Parallelization Rate</div>
+  <div class="rate-tabs" id="rate-tabs">
+    <button class="rate-tab active" onclick="setRate('100', this)">100%</button>
+    <button class="rate-tab"        onclick="setRate('75',  this)">75%</button>
+    <button class="rate-tab"        onclick="setRate('50',  this)">50%</button>
+    <button class="rate-tab rate-tab-zero" onclick="setRate('0', this)">0% — Fully Blocked</button>
+  </div>
+
+  <!-- Card output -->
+  <div id="cards-container"></div>
+</div>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+let curLang = 'cpp', curDep = 'none', curRate = '100';
+
+// ── Dependency metadata ───────────────────────────────────────────────────────
+const DEP_INFO = {
+  none: {
+    color: '#4caf50',
+    title: 'No Dependency — Embarrassingly Parallel',
+    desc: 'Each loop iteration writes to a unique memory location (e.g. out[i]) and reads only from inputs not modified by other iterations. No cross-iteration data sharing — all iterations can run simultaneously on any number of cores.'
+  },
+  reduction: {
+    color: '#00d4aa',
+    title: 'Reduction — Safe Accumulation Pattern',
+    desc: 'A variable is accumulated across iterations using an associative operator (+=, *=, max). Because these operators are associative and commutative, iterations can be split across threads and partial results combined at the end. OpenMP handles this with the reduction() clause.'
+  },
+  raw: {
+    color: '#ff5c5c',
+    title: 'RAW — Read After Write (Loop-Carried)',
+    desc: 'Iteration i writes a value that iteration i+1 reads. This creates a loop-carried dependency — the next iteration cannot start until the previous one finishes writing. Example: result[i] = result[i-1] + a[i]. Cannot be parallelized without restructuring.'
+  },
+  waw: {
+    color: '#ff8a8a',
+    title: 'WAW — Write After Write (Output Dependency)',
+    desc: 'Multiple iterations write to the same scalar variable without a unique index. The final value depends on which iteration runs last. Example: x = compute(i) in a loop — all iterations overwrite x. Fix: use x[i] = compute(i) to give each iteration a unique output slot.'
+  },
+  recurrence: {
+    color: '#ffc107',
+    title: 'Recurrence — Sequential Dependency Chain',
+    desc: 'Each iteration depends on the result of the previous iteration through an offset index access (a[i] = f(a[i-1])). This creates a chain of dependencies that cannot be broken without algorithmic restructuring (e.g. prefix-sum / scan algorithms). Classic example: Fibonacci sequence.'
+  },
+  alldeps: {
+    color: '#e040fb',
+    title: 'All Dependency Types — Mixed Example',
+    desc: 'This example contains multiple dependency types in one program: independent loops (safe), reduction loops (safe), RAW loop-carried dependencies (blocked), and WAW scalar writes (blocked). Use this to see how AutoParallel classifies each loop differently in the same code.'
+  },
+  zero: {
+    color: '#ff5c5c',
+    title: '0% Parallelizable — Every Loop Has a Dependency',
+    desc: 'Every loop in this program has a loop-carried dependency that prevents parallelization. RAW (Read After Write) and Recurrence dependencies form sequential chains where each iteration must wait for the previous one to complete. No loop can be safely parallelized without algorithmic restructuring.'
+  }
+};
+
+// ── Chip color helper ─────────────────────────────────────────────────────────
+function chipStyle(dep) {
+  const map = {
+    'None':       'background:rgba(76,175,80,0.2);color:#4caf50',
+    'Reduction':  'background:rgba(0,212,170,0.2);color:#00d4aa',
+    'RAW':        'background:rgba(255,92,92,0.2);color:#ff5c5c',
+    'WAW':        'background:rgba(255,92,92,0.15);color:#ff8a8a',
+    'Recurrence': 'background:rgba(255,193,7,0.2);color:#ffc107',
+  };
+  return map[dep] || '';
+}
+
+// ── Lang label helper ─────────────────────────────────────────────────────────
+const LANG_LABEL = { cpp: 'C++', c: 'C', java: 'Java', python: 'Python' };
+
+// ── Examples data ─────────────────────────────────────────────────────────────
+const EXAMPLES = {};
+
+// ════════════════════════════════════════════════════════════════════════════
+// C++ EXAMPLES
+// ════════════════════════════════════════════════════════════════════════════
+EXAMPLES.cpp = {
+  none: {
+    '100': {
+      title: 'C++ — 100% Parallelizable (No Dependencies)',
+      loops: [
+        { fn: 'scale()',  dep: 'None', status: 'safe',    note: 'b[i] = a[i] * 2.0 — unique write per iteration' },
+        { fn: 'square()', dep: 'None', status: 'safe',    note: 'c[i] = a[i] * a[i] — unique write per iteration' },
+        { fn: 'copy()',   dep: 'None', status: 'safe',    note: 'd[i] = a[i] + 1.0 — unique write per iteration' },
+      ],
+      code: `#include <vector>
+using namespace std;
+
+void process(const vector<double>& a, vector<double>& b,
+             vector<double>& c, vector<double>& d, int n) {
+    for (int i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    for (int i = 0; i < n; i++) {
+        c[i] = a[i] * a[i];
+    }
+    for (int i = 0; i < n; i++) {
+        d[i] = a[i] + 1.0;
+    }
+}`
+    },
+    '75': {
+      title: 'C++ — 75% Parallelizable (Mostly Independent)',
+      loops: [
+        { fn: 'scale()',  dep: 'None', status: 'safe',    note: 'b[i] = a[i] * 2.0 — independent' },
+        { fn: 'square()', dep: 'None', status: 'safe',    note: 'c[i] = a[i] * a[i] — independent' },
+        { fn: 'copy()',   dep: 'None', status: 'safe',    note: 'd[i] = a[i] + 1.0 — independent' },
+        { fn: 'prefix()', dep: 'RAW',  status: 'blocked', note: 'e[i] = e[i-1] + a[i] — loop-carried RAW' },
+      ],
+      code: `#include <vector>
+using namespace std;
+
+void process(const vector<double>& a, vector<double>& b,
+             vector<double>& c, vector<double>& d, vector<double>& e, int n) {
+    for (int i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    for (int i = 0; i < n; i++) {
+        c[i] = a[i] * a[i];
+    }
+    for (int i = 0; i < n; i++) {
+        d[i] = a[i] + 1.0;
+    }
+    for (int i = 1; i < n; i++) {
+        e[i] = e[i - 1] + a[i];
+    }
+}`
+    },
+    '50': {
+      title: 'C++ — 50% Parallelizable (Half Independent)',
+      loops: [
+        { fn: 'scale()',  dep: 'None', status: 'safe',    note: 'b[i] = a[i] * 2.0 — independent' },
+        { fn: 'prefix()', dep: 'RAW',  status: 'blocked', note: 'a[i] = a[i-1] + b[i] — loop-carried RAW' },
+      ],
+      code: `#include <vector>
+using namespace std;
+
+void process(vector<double>& a, vector<double>& b, int n) {
+    for (int i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    for (int i = 1; i < n; i++) {
+        a[i] = a[i - 1] + b[i];
+    }
+}`
+    }
+  },
+
+  reduction: {
+    '100': {
+      title: 'C++ — 100% Parallelizable (All Reductions)',
+      loops: [
+        { fn: 'sum()',     dep: 'Reduction', status: 'safe', note: 'total += a[i] — safe reduction (+)' },
+        { fn: 'product()', dep: 'Reduction', status: 'safe', note: 'prod *= a[i] — safe reduction (*)' },
+        { fn: 'max_val()', dep: 'Reduction', status: 'safe', note: 'mx = max(mx, a[i]) — safe reduction (max)' },
+      ],
+      code: `#include <vector>
+#include <algorithm>
+using namespace std;
+
+void compute(const vector<double>& a, int n,
+             double& total, double& prod, double& mx) {
+    total = 0.0;
+    for (int i = 0; i < n; i++) {
+        total += a[i];
+    }
+    prod = 1.0;
+    for (int i = 0; i < n; i++) {
+        prod *= a[i];
+    }
+    mx = a[0];
+    for (int i = 0; i < n; i++) {
+        if (a[i] > mx) mx = a[i];
+    }
+}`
+    },
+    '75': {
+      title: 'C++ — 75% Parallelizable (Reductions + 1 Blocked)',
+      loops: [
+        { fn: 'sum()',     dep: 'Reduction', status: 'safe',    note: 'total += a[i] — reduction' },
+        { fn: 'product()', dep: 'Reduction', status: 'safe',    note: 'prod *= a[i] — reduction' },
+        { fn: 'scale()',   dep: 'None',      status: 'safe',    note: 'b[i] = a[i]*2 — independent' },
+        { fn: 'prefix()',  dep: 'RAW',       status: 'blocked', note: 'c[i] = c[i-1]+a[i] — loop-carried RAW' },
+      ],
+      code: `#include <vector>
+using namespace std;
+
+void compute(const vector<double>& a, vector<double>& b, vector<double>& c, int n,
+             double& total, double& prod) {
+    total = 0.0;
+    for (int i = 0; i < n; i++) {
+        total += a[i];
+    }
+    prod = 1.0;
+    for (int i = 0; i < n; i++) {
+        prod *= a[i];
+    }
+    for (int i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    for (int i = 1; i < n; i++) {
+        c[i] = c[i - 1] + a[i];
+    }
+}`
+    },
+    '50': {
+      title: 'C++ — 50% Parallelizable (Reduction + Blocked)',
+      loops: [
+        { fn: 'sum()',    dep: 'Reduction', status: 'safe',    note: 'total += a[i] — reduction' },
+        { fn: 'prefix()', dep: 'RAW',       status: 'blocked', note: 'b[i] = b[i-1]+a[i] — loop-carried RAW' },
+      ],
+      code: `#include <vector>
+using namespace std;
+
+void compute(const vector<double>& a, vector<double>& b, int n, double& total) {
+    total = 0.0;
+    for (int i = 0; i < n; i++) {
+        total += a[i];
+    }
+    for (int i = 1; i < n; i++) {
+        b[i] = b[i - 1] + a[i];
+    }
+}`
+    }
+  },
+
+  raw: {
+    '100': {
+      title: 'C++ — 100% Parallelizable (No RAW — Safe Writes)',
+      loops: [
+        { fn: 'scale()', dep: 'None',      status: 'safe', note: 'b[i] = a[i]*2 — unique index, no RAW' },
+        { fn: 'sum()',   dep: 'Reduction', status: 'safe', note: 'total += a[i] — reduction, not RAW' },
+        { fn: 'norm()',  dep: 'None',      status: 'safe', note: 'c[i] = a[i]/total — reads scalar only' },
+      ],
+      code: `#include <vector>
+using namespace std;
+
+// These loops look like they might have RAW but they don't:
+// - b[i] writes to unique index — no iteration reads b[j] for j != i
+// - total is a reduction, not a loop-carried RAW
+// - c[i] reads total (pre-computed scalar), not another c[j]
+void process(const vector<double>& a, vector<double>& b, vector<double>& c, int n) {
+    for (int i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    double total = 0.0;
+    for (int i = 0; i < n; i++) {
+        total += a[i];
+    }
+    for (int i = 0; i < n; i++) {
+        c[i] = a[i] / total;
+    }
+}`
+    },
+    '75': {
+      title: 'C++ — 75% Parallelizable (1 RAW Dependency)',
+      loops: [
+        { fn: 'scale()',  dep: 'None',      status: 'safe',    note: 'b[i] = a[i]*2 — independent' },
+        { fn: 'sum()',    dep: 'Reduction', status: 'safe',    note: 'total += a[i] — reduction' },
+        { fn: 'norm()',   dep: 'None',      status: 'safe',    note: 'c[i] = a[i]/total — independent' },
+        { fn: 'prefix()', dep: 'RAW',       status: 'blocked', note: 'd[i] = d[i-1]+a[i] — loop-carried RAW' },
+      ],
+      code: `#include <vector>
+using namespace std;
+
+void process(const vector<double>& a, vector<double>& b,
+             vector<double>& c, vector<double>& d, int n) {
+    for (int i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    double total = 0.0;
+    for (int i = 0; i < n; i++) {
+        total += a[i];
+    }
+    for (int i = 0; i < n; i++) {
+        c[i] = a[i] / total;
+    }
+    for (int i = 1; i < n; i++) {
+        d[i] = d[i - 1] + a[i];
+    }
+}`
+    },
+    '50': {
+      title: 'C++ — 50% Parallelizable (1 RAW, 1 Safe)',
+      loops: [
+        { fn: 'scale()',  dep: 'None', status: 'safe',    note: 'b[i] = a[i]*2 — independent' },
+        { fn: 'prefix()', dep: 'RAW',  status: 'blocked', note: 'a[i] = a[i-1]+b[i] — loop-carried RAW' },
+      ],
+      code: `#include <vector>
+using namespace std;
+void process(vector<double>& a, vector<double>& b, int n) {
+    for (int i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    for (int i = 1; i < n; i++) {
+        a[i] = a[i - 1] + b[i];
+    }
+}`
+    }
+  },
+
+  waw: {
+    '100': {
+      title: 'C++ — 100% Parallelizable (No WAW — Indexed Writes)',
+      loops: [
+        { fn: 'scale()',  dep: 'None',      status: 'safe', note: 'b[i] = a[i]*2 — indexed write, no WAW' },
+        { fn: 'square()', dep: 'None',      status: 'safe', note: 'c[i] = a[i]*a[i] — indexed write, no WAW' },
+        { fn: 'sum()',    dep: 'Reduction', status: 'safe', note: 'total += a[i] — reduction, not WAW' },
+      ],
+      code: `#include <vector>
+using namespace std;
+
+// No WAW: every write uses a unique index b[i], c[i]
+// total uses reduction — not a WAW because it's associative accumulation
+void process(const vector<double>& a, vector<double>& b, vector<double>& c, int n,
+             double& total) {
+    for (int i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    for (int i = 0; i < n; i++) {
+        c[i] = a[i] * a[i];
+    }
+    total = 0.0;
+    for (int i = 0; i < n; i++) {
+        total += a[i];
+    }
+}`
+    },
+    '75': {
+      title: 'C++ — 75% Parallelizable (1 WAW Dependency)',
+      loops: [
+        { fn: 'scale()',  dep: 'None',      status: 'safe',    note: 'b[i] = a[i]*2 — indexed, no WAW' },
+        { fn: 'square()', dep: 'None',      status: 'safe',    note: 'c[i] = a[i]*a[i] — indexed, no WAW' },
+        { fn: 'sum()',    dep: 'Reduction', status: 'safe',    note: 'total += a[i] — reduction' },
+        { fn: 'last()',   dep: 'WAW',       status: 'blocked', note: 'last = a[i] — scalar WAW' },
+      ],
+      code: `#include <vector>
+using namespace std;
+
+void process(const vector<double>& a, vector<double>& b, vector<double>& c, int n,
+             double& total, double& last) {
+    for (int i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    for (int i = 0; i < n; i++) {
+        c[i] = a[i] * a[i];
+    }
+    total = 0.0;
+    for (int i = 0; i < n; i++) {
+        total += a[i];
+    }
+    for (int i = 0; i < n; i++) {
+        last = a[i];
+    }
+}`
+    },
+    '50': {
+      title: 'C++ — 50% Parallelizable (1 WAW, 1 Safe)',
+      loops: [
+        { fn: 'scale()', dep: 'None', status: 'safe',    note: 'b[i] = a[i]*2 — indexed write' },
+        { fn: 'last()',  dep: 'WAW',  status: 'blocked', note: 'last = a[i] — scalar WAW' },
+      ],
+      code: `#include <vector>
+using namespace std;
+
+// Fix for WAW: change  last = a[i]  to  last_arr[i] = a[i]
+// Then each iteration writes to a unique slot — no WAW.
+void process(const vector<double>& a, vector<double>& b, int n, double& last) {
+    for (int i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    for (int i = 0; i < n; i++) {
+        last = a[i];
+                                       // write to same scalar 'last'
+    }
+}`
+    }
+  },
+
+  recurrence: {
+    '100': {
+      title: 'C++ — 100% Parallelizable (No Recurrence)',
+      loops: [
+        { fn: 'scale()', dep: 'None',      status: 'safe', note: 'b[i] = a[i]*2 — no recurrence' },
+        { fn: 'sum()',   dep: 'Reduction', status: 'safe', note: 'total += a[i] — reduction, not recurrence' },
+        { fn: 'norm()',  dep: 'None',      status: 'safe', note: 'c[i] = a[i]/total — no recurrence' },
+      ],
+      code: `#include <vector>
+using namespace std;
+
+// No recurrence: no loop reads a value written by a previous iteration
+// using an offset index like a[i-1] or a[i-2]
+void process(const vector<double>& a, vector<double>& b, vector<double>& c, int n) {
+    for (int i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    double total = 0.0;
+    for (int i = 0; i < n; i++) {
+        total += a[i];
+    }
+    for (int i = 0; i < n; i++) {
+        c[i] = a[i] / total;
+    }
+}`
+    },
+    '75': {
+      title: 'C++ — 75% Parallelizable (1 Recurrence)',
+      loops: [
+        { fn: 'scale()', dep: 'None',       status: 'safe',    note: 'b[i] = a[i]*2 — independent' },
+        { fn: 'sum()',   dep: 'Reduction',  status: 'safe',    note: 'total += a[i] — reduction' },
+        { fn: 'norm()',  dep: 'None',       status: 'safe',    note: 'c[i] = a[i]/total — independent' },
+        { fn: 'fib()',   dep: 'Recurrence', status: 'blocked', note: 'fib[i] = fib[i-1]+fib[i-2] — recurrence' },
+      ],
+      code: `#include <vector>
+using namespace std;
+
+void process(const vector<double>& a, vector<double>& b, vector<double>& c,
+             vector<long>& fib, int n) {
+    for (int i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    double total = 0.0;
+    for (int i = 0; i < n; i++) {
+        total += a[i];
+    }
+    for (int i = 0; i < n; i++) {
+        c[i] = a[i] / total;
+    }
+    fib[0] = 0; fib[1] = 1;
+    for (int i = 2; i < n; i++) {
+        fib[i] = fib[i-1] + fib[i-2];
+    }
+}`
+    },
+    '50': {
+      title: 'C++ — 50% Parallelizable (1 Recurrence, 1 Safe)',
+      loops: [
+        { fn: 'scale()',  dep: 'None',       status: 'safe',    note: 'b[i] = a[i]*2 — independent' },
+        { fn: 'prefix()', dep: 'Recurrence', status: 'blocked', note: 'a[i] = a[i-1]+b[i] — recurrence (prefix sum)' },
+      ],
+      code: `#include <vector>
+using namespace std;
+
+// Recurrence: a[i] = a[i-1] + b[i]
+// Each iteration depends on the result of the previous — a chain of dependencies.
+// This is equivalent to a prefix sum / scan operation.
+// Fix: use std::partial_sum() or a parallel prefix-sum algorithm.
+void process(vector<double>& a, vector<double>& b, int n) {
+    for (int i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    for (int i = 1; i < n; i++) {
+        a[i] = a[i - 1] + b[i];
+    }
+}`
+    }
+  },
+
+  // ── 0% Parallelizable ──────────────────────────────────────────────────
+  alldeps: {
+    '100': {
+      title: 'C++ — 50% Parallelizable (All Dependency Types)',
+      loops: [
+        { fn: 'scale()',  dep: 'None',      status: 'safe',    note: 'b[i] = a[i]*2 — independent, no dependency' },
+        { fn: 'sum()',    dep: 'Reduction', status: 'safe',    note: 'total += a[i] — safe reduction' },
+        { fn: 'prefix()', dep: 'RAW',       status: 'blocked', note: 'c[i] = c[i-1]+a[i] — loop-carried RAW' },
+        { fn: 'last()',   dep: 'WAW',       status: 'blocked', note: 'last = a[i] — scalar WAW' },
+      ],
+      code: `#include <vector>
+using namespace std;
+
+void process(const vector<double>& a, vector<double>& b,
+             vector<double>& c, int n, double& total, double& last) {
+    for (int i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    total = 0.0;
+    for (int i = 0; i < n; i++) {
+        total += a[i];
+    }
+    for (int i = 1; i < n; i++) {
+        c[i] = c[i - 1] + a[i];
+    }
+    for (int i = 0; i < n; i++) {
+        last = a[i];
+    }
+}`
+    },
+    '0': {
+      title: 'C++ — 0% Parallelizable (All Loops Blocked)',
+      loops: [
+        { fn: 'prefix()',    dep: 'RAW',       status: 'blocked', note: 'a[i] = a[i-1]+b[i] — loop-carried RAW' },
+        { fn: 'fibonacci()', dep: 'Recurrence', status: 'blocked', note: 'fib[i] = fib[i-1]+fib[i-2] — recurrence' },
+      ],
+      code: `#include <vector>
+using namespace std;
+
+void prefix_sum(vector<double>& a, const vector<double>& b, int n) {
+    for (int i = 1; i < n; i++) {
+        a[i] = a[i - 1] + b[i];
+    }
+}
+
+void fibonacci(vector<long>& fib, int n) {
+    fib[0] = 0; fib[1] = 1;
+    for (int i = 2; i < n; i++) {
+        fib[i] = fib[i - 1] + fib[i - 2];
+    }
+}`
+    }
+  }
+};
+
+// ════════════════════════════════════════════════════════════════════════════
+// C EXAMPLES
+// ════════════════════════════════════════════════════════════════════════════
+EXAMPLES.c = {
+  none: {
+    '100': {
+      title: 'C — 100% Parallelizable (No Dependencies)',
+      loops: [
+        { fn: 'scale()',  dep: 'None', status: 'safe', note: 'b[i] = a[i] * 2.0 — unique write per iteration' },
+        { fn: 'square()', dep: 'None', status: 'safe', note: 'c[i] = a[i] * a[i] — unique write per iteration' },
+        { fn: 'copy()',   dep: 'None', status: 'safe', note: 'd[i] = a[i] + 1.0 — unique write per iteration' },
+      ],
+      code: `#include <stdlib.h>
+
+void process(const double* a, double* b, double* c, double* d, int n) {
+    int i;
+    for (i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    for (i = 0; i < n; i++) {
+        c[i] = a[i] * a[i];
+    }
+    for (i = 0; i < n; i++) {
+        d[i] = a[i] + 1.0;
+    }
+}`
+    },
+    '75': {
+      title: 'C — 75% Parallelizable (Mostly Independent)',
+      loops: [
+        { fn: 'scale()',  dep: 'None', status: 'safe',    note: 'b[i] = a[i] * 2.0 — independent' },
+        { fn: 'square()', dep: 'None', status: 'safe',    note: 'c[i] = a[i] * a[i] — independent' },
+        { fn: 'copy()',   dep: 'None', status: 'safe',    note: 'd[i] = a[i] + 1.0 — independent' },
+        { fn: 'prefix()', dep: 'RAW',  status: 'blocked', note: 'e[i] = e[i-1] + a[i] — loop-carried RAW' },
+      ],
+      code: `#include <stdlib.h>
+
+void process(const double* a, double* b, double* c, double* d, double* e, int n) {
+    int i;
+    for (i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    for (i = 0; i < n; i++) {
+        c[i] = a[i] * a[i];
+    }
+    for (i = 0; i < n; i++) {
+        d[i] = a[i] + 1.0;
+    }
+    for (i = 1; i < n; i++) {
+        e[i] = e[i - 1] + a[i];
+    }
+}`
+    },
+    '50': {
+      title: 'C — 50% Parallelizable (Half Independent)',
+      loops: [
+        { fn: 'scale()',  dep: 'None', status: 'safe',    note: 'b[i] = a[i] * 2.0 — independent' },
+        { fn: 'prefix()', dep: 'RAW',  status: 'blocked', note: 'a[i] = a[i-1] + b[i] — loop-carried RAW' },
+      ],
+      code: `#include <stdlib.h>
+
+void process(double* a, double* b, int n) {
+    int i;
+    for (i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    for (i = 1; i < n; i++) {
+        a[i] = a[i - 1] + b[i];
+    }
+}`
+    }
+  },
+
+  reduction: {
+    '100': {
+      title: 'C — 100% Parallelizable (All Reductions)',
+      loops: [
+        { fn: 'sum()',     dep: 'Reduction', status: 'safe', note: 'total += a[i] — safe reduction (+)' },
+        { fn: 'product()', dep: 'Reduction', status: 'safe', note: 'prod *= a[i] — safe reduction (*)' },
+        { fn: 'max_val()', dep: 'Reduction', status: 'safe', note: 'mx = max(mx,a[i]) — safe reduction (max)' },
+      ],
+      code: `#include <stdlib.h>
+
+void compute(const double* a, int n,
+             double* total, double* prod, double* mx) {
+    int i;
+    *total = 0.0;
+    for (i = 0; i < n; i++) {
+        *total += a[i];
+    }
+    *prod = 1.0;
+    for (i = 0; i < n; i++) {
+        *prod *= a[i];
+    }
+    *mx = a[0];
+    for (i = 0; i < n; i++) {
+        if (a[i] > *mx) *mx = a[i];
+    }
+}`
+    },
+    '75': {
+      title: 'C — 75% Parallelizable (Reductions + 1 Blocked)',
+      loops: [
+        { fn: 'sum()',     dep: 'Reduction', status: 'safe',    note: 'total += a[i] — reduction' },
+        { fn: 'product()', dep: 'Reduction', status: 'safe',    note: 'prod *= a[i] — reduction' },
+        { fn: 'scale()',   dep: 'None',      status: 'safe',    note: 'b[i] = a[i]*2 — independent' },
+        { fn: 'prefix()',  dep: 'RAW',       status: 'blocked', note: 'c[i] = c[i-1]+a[i] — loop-carried RAW' },
+      ],
+      code: `#include <stdlib.h>
+
+void compute(const double* a, double* b, double* c, int n,
+             double* total, double* prod) {
+    int i;
+    *total = 0.0;
+    for (i = 0; i < n; i++) {
+        *total += a[i];
+    }
+    *prod = 1.0;
+    for (i = 0; i < n; i++) {
+        *prod *= a[i];
+    }
+    for (i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    for (i = 1; i < n; i++) {
+        c[i] = c[i - 1] + a[i];
+    }
+}`
+    },
+    '50': {
+      title: 'C — 50% Parallelizable (Reduction + Blocked)',
+      loops: [
+        { fn: 'sum()',    dep: 'Reduction', status: 'safe',    note: 'total += a[i] — reduction' },
+        { fn: 'prefix()', dep: 'RAW',       status: 'blocked', note: 'b[i] = b[i-1]+a[i] — loop-carried RAW' },
+      ],
+      code: `#include <stdlib.h>
+
+void compute(const double* a, double* b, int n, double* total) {
+    int i;
+    *total = 0.0;
+    for (i = 0; i < n; i++) {
+        *total += a[i];
+    }
+    for (i = 1; i < n; i++) {
+        b[i] = b[i - 1] + a[i];
+    }
+}`
+    }
+  },
+
+  raw: {
+    '100': {
+      title: 'C — 100% Parallelizable (No RAW — Safe Writes)',
+      loops: [
+        { fn: 'scale()', dep: 'None',      status: 'safe', note: 'b[i] = a[i]*2 — unique index, no RAW' },
+        { fn: 'sum()',   dep: 'Reduction', status: 'safe', note: 'total += a[i] — reduction, not RAW' },
+        { fn: 'norm()',  dep: 'None',      status: 'safe', note: 'c[i] = a[i]/total — reads scalar only' },
+      ],
+      code: `#include <stdlib.h>
+
+void process(const double* a, double* b, double* c, int n) {
+    int i;
+    double total = 0.0;
+    for (i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    for (i = 0; i < n; i++) {
+        total += a[i];
+    }
+    for (i = 0; i < n; i++) {
+        c[i] = a[i] / total;
+    }
+}`
+    },
+    '75': {
+      title: 'C — 75% Parallelizable (1 RAW Dependency)',
+      loops: [
+        { fn: 'scale()',  dep: 'None',      status: 'safe',    note: 'b[i] = a[i]*2 — independent' },
+        { fn: 'sum()',    dep: 'Reduction', status: 'safe',    note: 'total += a[i] — reduction' },
+        { fn: 'norm()',   dep: 'None',      status: 'safe',    note: 'c[i] = a[i]/total — independent' },
+        { fn: 'prefix()', dep: 'RAW',       status: 'blocked', note: 'd[i] = d[i-1]+a[i] — loop-carried RAW' },
+      ],
+      code: `#include <stdlib.h>
+
+void process(const double* a, double* b, double* c, double* d, int n) {
+    int i;
+    double total = 0.0;
+    for (i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    for (i = 0; i < n; i++) {
+        total += a[i];
+    }
+    for (i = 0; i < n; i++) {
+        c[i] = a[i] / total;
+    }
+    for (i = 1; i < n; i++) {
+        d[i] = d[i - 1] + a[i];
+    }
+}`
+    },
+    '50': {
+      title: 'C — 50% Parallelizable (1 RAW, 1 Safe)',
+      loops: [
+        { fn: 'scale()',  dep: 'None', status: 'safe',    note: 'b[i] = a[i]*2 — independent' },
+        { fn: 'prefix()', dep: 'RAW',  status: 'blocked', note: 'a[i] = a[i-1]+b[i] — loop-carried RAW' },
+      ],
+      code: `#include <stdlib.h>
+void process(double* a, double* b, int n) {
+    int i;
+    for (i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    for (i = 1; i < n; i++) {
+        a[i] = a[i - 1] + b[i];
+    }
+}`
+    }
+  },
+
+  waw: {
+    '100': {
+      title: 'C — 100% Parallelizable (No WAW — Indexed Writes)',
+      loops: [
+        { fn: 'scale()',  dep: 'None',      status: 'safe', note: 'b[i] = a[i]*2 — indexed write, no WAW' },
+        { fn: 'square()', dep: 'None',      status: 'safe', note: 'c[i] = a[i]*a[i] — indexed write, no WAW' },
+        { fn: 'sum()',    dep: 'Reduction', status: 'safe', note: 'total += a[i] — reduction, not WAW' },
+      ],
+      code: `#include <stdlib.h>
+
+void process(const double* a, double* b, double* c, int n, double* total) {
+    int i;
+    for (i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    for (i = 0; i < n; i++) {
+        c[i] = a[i] * a[i];
+    }
+    *total = 0.0;
+    for (i = 0; i < n; i++) {
+        *total += a[i];
+    }
+}`
+    },
+    '75': {
+      title: 'C — 75% Parallelizable (1 WAW Dependency)',
+      loops: [
+        { fn: 'scale()',  dep: 'None',      status: 'safe',    note: 'b[i] = a[i]*2 — indexed, no WAW' },
+        { fn: 'square()', dep: 'None',      status: 'safe',    note: 'c[i] = a[i]*a[i] — indexed, no WAW' },
+        { fn: 'sum()',    dep: 'Reduction', status: 'safe',    note: 'total += a[i] — reduction' },
+        { fn: 'last()',   dep: 'WAW',       status: 'blocked', note: 'last = a[i] — scalar WAW' },
+      ],
+      code: `#include <stdlib.h>
+
+void process(const double* a, double* b, double* c, int n,
+             double* total, double* last) {
+    int i;
+    for (i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    for (i = 0; i < n; i++) {
+        c[i] = a[i] * a[i];
+    }
+    *total = 0.0;
+    for (i = 0; i < n; i++) {
+        *total += a[i];
+    }
+    for (i = 0; i < n; i++) {
+        *last = a[i];
+    }
+}`
+    },
+    '50': {
+      title: 'C — 50% Parallelizable (1 WAW, 1 Safe)',
+      loops: [
+        { fn: 'scale()', dep: 'None', status: 'safe',    note: 'b[i] = a[i]*2 — indexed write' },
+        { fn: 'last()',  dep: 'WAW',  status: 'blocked', note: 'last = a[i] — scalar WAW' },
+      ],
+      code: `#include <stdlib.h>
+
+void process(const double* a, double* b, int n, double* last) {
+    int i;
+    for (i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    for (i = 0; i < n; i++) {
+        *last = a[i];
+    }
+}`
+    }
+  },
+
+  recurrence: {
+    '100': {
+      title: 'C — 100% Parallelizable (No Recurrence)',
+      loops: [
+        { fn: 'scale()', dep: 'None',      status: 'safe', note: 'b[i] = a[i]*2 — no recurrence' },
+        { fn: 'sum()',   dep: 'Reduction', status: 'safe', note: 'total += a[i] — reduction, not recurrence' },
+        { fn: 'norm()',  dep: 'None',      status: 'safe', note: 'c[i] = a[i]/total — no recurrence' },
+      ],
+      code: `#include <stdlib.h>
+
+void process(const double* a, double* b, double* c, int n) {
+    int i;
+    double total = 0.0;
+    for (i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    for (i = 0; i < n; i++) {
+        total += a[i];
+    }
+    for (i = 0; i < n; i++) {
+        c[i] = a[i] / total;
+    }
+}`
+    },
+    '75': {
+      title: 'C — 75% Parallelizable (1 Recurrence)',
+      loops: [
+        { fn: 'scale()', dep: 'None',       status: 'safe',    note: 'b[i] = a[i]*2 — independent' },
+        { fn: 'sum()',   dep: 'Reduction',  status: 'safe',    note: 'total += a[i] — reduction' },
+        { fn: 'norm()',  dep: 'None',       status: 'safe',    note: 'c[i] = a[i]/total — independent' },
+        { fn: 'fib()',   dep: 'Recurrence', status: 'blocked', note: 'fib[i] = fib[i-1]+fib[i-2] — recurrence' },
+      ],
+      code: `#include <stdlib.h>
+
+void process(const double* a, double* b, double* c, long* fib, int n) {
+    int i;
+    double total = 0.0;
+    for (i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    for (i = 0; i < n; i++) {
+        total += a[i];
+    }
+    for (i = 0; i < n; i++) {
+        c[i] = a[i] / total;
+    }
+    fib[0] = 0; fib[1] = 1;
+    for (i = 2; i < n; i++) {
+        fib[i] = fib[i-1] + fib[i-2];
+    }
+}`
+    },
+    '50': {
+      title: 'C — 50% Parallelizable (1 Recurrence, 1 Safe)',
+      loops: [
+        { fn: 'scale()',  dep: 'None',       status: 'safe',    note: 'b[i] = a[i]*2 — independent' },
+        { fn: 'prefix()', dep: 'Recurrence', status: 'blocked', note: 'a[i] = a[i-1]+b[i] — recurrence (prefix sum)' },
+      ],
+      code: `#include <stdlib.h>
+
+void process(double* a, double* b, int n) {
+    int i;
+    for (i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    for (i = 1; i < n; i++) {
+        a[i] = a[i - 1] + b[i];
+    }
+}`
+    }
+  },
+
+  alldeps: {
+    '100': {
+      title: 'C — 50% Parallelizable (All Dependency Types)',
+      loops: [
+        { fn: 'scale()',  dep: 'None',      status: 'safe',    note: 'b[i] = a[i]*2 — independent' },
+        { fn: 'sum()',    dep: 'Reduction', status: 'safe',    note: 'total += a[i] — reduction' },
+        { fn: 'prefix()', dep: 'RAW',       status: 'blocked', note: 'c[i] = c[i-1]+a[i] — loop-carried RAW' },
+        { fn: 'last()',   dep: 'WAW',       status: 'blocked', note: 'last = a[i] — scalar WAW' },
+      ],
+      code: `#include <stdlib.h>
+
+void process(const double* a, double* b, double* c, int n,
+             double* total, double* last) {
+    int i;
+    for (i = 0; i < n; i++) {
+        b[i] = a[i] * 2.0;
+    }
+    *total = 0.0;
+    for (i = 0; i < n; i++) {
+        *total += a[i];
+    }
+    for (i = 1; i < n; i++) {
+        c[i] = c[i - 1] + a[i];
+    }
+    for (i = 0; i < n; i++) {
+        *last = a[i];
+    }
+}`
+    },
+    '0': {
+      title: 'C — 0% Parallelizable (All Loops Blocked)',
+      loops: [
+        { fn: 'prefix_sum()', dep: 'RAW',       status: 'blocked', note: 'a[i] = a[i-1]+b[i] — loop-carried RAW' },
+        { fn: 'fibonacci()',  dep: 'Recurrence', status: 'blocked', note: 'fib[i] = fib[i-1]+fib[i-2] — recurrence' },
+      ],
+      code: `#include <stdlib.h>
+
+void prefix_sum(double* a, const double* b, int n) {
+    int i;
+    for (i = 1; i < n; i++) {
+        a[i] = a[i - 1] + b[i];
+    }
+}
+
+void fibonacci(long* fib, int n) {
+    int i;
+    fib[0] = 0; fib[1] = 1;
+    for (i = 2; i < n; i++) {
+        fib[i] = fib[i - 1] + fib[i - 2];
+    }
+}`
+    }
+  }
+};
+
+// ════════════════════════════════════════════════════════════════════════════
+// JAVA EXAMPLES
+// ════════════════════════════════════════════════════════════════════════════
+EXAMPLES.java = {
+  none: {
+    '100': {
+      title: 'Java — 100% Parallelizable (No Dependencies)',
+      loops: [
+        { fn: 'scale()',  dep: 'None', status: 'safe', note: 'b[i] = a[i] * 2.0 — unique write per iteration' },
+        { fn: 'square()', dep: 'None', status: 'safe', note: 'c[i] = a[i] * a[i] — unique write per iteration' },
+        { fn: 'copy()',   dep: 'None', status: 'safe', note: 'd[i] = a[i] + 1.0 — unique write per iteration' },
+      ],
+      code: `// All loops: each iteration writes to a unique index — no cross-iteration dependency
+public class Process {
+    public static void process(double[] a, double[] b, double[] c, double[] d) {
+        int n = a.length;
+        for (int i = 0; i < n; i++) {
+            b[i] = a[i] * 2.0;
+        }
+        for (int i = 0; i < n; i++) {
+            c[i] = a[i] * a[i];
+        }
+        for (int i = 0; i < n; i++) {
+            d[i] = a[i] + 1.0;
+        }
+    }
+}`
+    },
+    '75': {
+      title: 'Java — 75% Parallelizable (Mostly Independent)',
+      loops: [
+        { fn: 'scale()',  dep: 'None', status: 'safe',    note: 'b[i] = a[i] * 2.0 — independent' },
+        { fn: 'square()', dep: 'None', status: 'safe',    note: 'c[i] = a[i] * a[i] — independent' },
+        { fn: 'copy()',   dep: 'None', status: 'safe',    note: 'd[i] = a[i] + 1.0 — independent' },
+        { fn: 'prefix()', dep: 'RAW',  status: 'blocked', note: 'e[i] = e[i-1] + a[i] — loop-carried RAW' },
+      ],
+      code: `public class Process {
+    public static void process(double[] a, double[] b, double[] c,
+                               double[] d, double[] e) {
+        int n = a.length;
+        for (int i = 0; i < n; i++) {
+            b[i] = a[i] * 2.0;
+        }
+        for (int i = 0; i < n; i++) {
+            c[i] = a[i] * a[i];
+        }
+        for (int i = 0; i < n; i++) {
+            d[i] = a[i] + 1.0;
+        }
+        for (int i = 1; i < n; i++) {
+            e[i] = e[i - 1] + a[i];
+        }
+    }
+}`
+    },
+    '50': {
+      title: 'Java — 50% Parallelizable (Half Independent)',
+      loops: [
+        { fn: 'scale()',  dep: 'None', status: 'safe',    note: 'b[i] = a[i] * 2.0 — independent' },
+        { fn: 'prefix()', dep: 'RAW',  status: 'blocked', note: 'a[i] = a[i-1] + b[i] — loop-carried RAW' },
+      ],
+      code: `public class Process {
+    public static void process(double[] a, double[] b) {
+        int n = a.length;
+        for (int i = 0; i < n; i++) {
+            b[i] = a[i] * 2.0;
+        }
+        for (int i = 1; i < n; i++) {
+            a[i] = a[i - 1] + b[i];
+        }
+    }
+}`
+    }
+  },
+
+  reduction: {
+    '100': {
+      title: 'Java — 100% Parallelizable (All Reductions)',
+      loops: [
+        { fn: 'sum()',     dep: 'Reduction', status: 'safe', note: 'total += a[i] — safe reduction (+)' },
+        { fn: 'product()', dep: 'Reduction', status: 'safe', note: 'prod *= a[i] — safe reduction (*)' },
+        { fn: 'max_val()', dep: 'Reduction', status: 'safe', note: 'mx = Math.max(mx,a[i]) — safe reduction' },
+      ],
+      code: `// All loops use reduction patterns — safe to parallelize with parallel streams
+public class Compute {
+    public static void compute(double[] a, double[] result) {
+        int n = a.length;
+        double total = 0.0;
+        for (int i = 0; i < n; i++) {
+            total += a[i];
+        }
+        double prod = 1.0;
+        for (int i = 0; i < n; i++) {
+            prod *= a[i];
+        }
+        double mx = a[0];
+        for (int i = 0; i < n; i++) {
+            if (a[i] > mx) mx = a[i];
+        }
+        result[0] = total; result[1] = prod; result[2] = mx;
+    }
+}`
+    },
+    '75': {
+      title: 'Java — 75% Parallelizable (Reductions + 1 Blocked)',
+      loops: [
+        { fn: 'sum()',     dep: 'Reduction', status: 'safe',    note: 'total += a[i] — reduction' },
+        { fn: 'product()', dep: 'Reduction', status: 'safe',    note: 'prod *= a[i] — reduction' },
+        { fn: 'scale()',   dep: 'None',      status: 'safe',    note: 'b[i] = a[i]*2 — independent' },
+        { fn: 'prefix()',  dep: 'RAW',       status: 'blocked', note: 'c[i] = c[i-1]+a[i] — loop-carried RAW' },
+      ],
+      code: `public class Compute {
+    public static void compute(double[] a, double[] b, double[] c) {
+        int n = a.length;
+        double total = 0.0;
+        for (int i = 0; i < n; i++) {
+            total += a[i];
+        }
+        double prod = 1.0;
+        for (int i = 0; i < n; i++) {
+            prod *= a[i];
+        }
+        for (int i = 0; i < n; i++) {
+            b[i] = a[i] * 2.0;
+        }
+        for (int i = 1; i < n; i++) {
+            c[i] = c[i - 1] + a[i];
+        }
+    }
+}`
+    },
+    '50': {
+      title: 'Java — 50% Parallelizable (Reduction + Blocked)',
+      loops: [
+        { fn: 'sum()',    dep: 'Reduction', status: 'safe',    note: 'total += a[i] — reduction' },
+        { fn: 'prefix()', dep: 'RAW',       status: 'blocked', note: 'b[i] = b[i-1]+a[i] — loop-carried RAW' },
+      ],
+      code: `public class Compute {
+    public static void compute(double[] a, double[] b) {
+        int n = a.length;
+        double total = 0.0;
+        for (int i = 0; i < n; i++) {
+            total += a[i];
+        }
+        for (int i = 1; i < n; i++) {
+            b[i] = b[i - 1] + a[i];
+        }
+    }
+}`
+    }
+  },
+
+  raw: {
+    '100': {
+      title: 'Java — 100% Parallelizable (No RAW — Safe Writes)',
+      loops: [
+        { fn: 'scale()', dep: 'None',      status: 'safe', note: 'b[i] = a[i]*2 — unique index, no RAW' },
+        { fn: 'sum()',   dep: 'Reduction', status: 'safe', note: 'total += a[i] — reduction, not RAW' },
+        { fn: 'norm()',  dep: 'None',      status: 'safe', note: 'c[i] = a[i]/total — reads scalar only' },
+      ],
+      code: `public class Process {
+    public static void process(double[] a, double[] b, double[] c) {
+        int n = a.length;
+        for (int i = 0; i < n; i++) {
+            b[i] = a[i] * 2.0;
+        }
+        double total = 0.0;
+        for (int i = 0; i < n; i++) {
+            total += a[i];
+        }
+        for (int i = 0; i < n; i++) {
+            c[i] = a[i] / total;
+        }
+    }
+}`
+    },
+    '75': {
+      title: 'Java — 75% Parallelizable (1 RAW Dependency)',
+      loops: [
+        { fn: 'scale()',  dep: 'None',      status: 'safe',    note: 'b[i] = a[i]*2 — independent' },
+        { fn: 'sum()',    dep: 'Reduction', status: 'safe',    note: 'total += a[i] — reduction' },
+        { fn: 'norm()',   dep: 'None',      status: 'safe',    note: 'c[i] = a[i]/total — independent' },
+        { fn: 'prefix()', dep: 'RAW',       status: 'blocked', note: 'd[i] = d[i-1]+a[i] — loop-carried RAW' },
+      ],
+      code: `public class Process {
+    public static void process(double[] a, double[] b, double[] c, double[] d) {
+        int n = a.length;
+        for (int i = 0; i < n; i++) {
+            b[i] = a[i] * 2.0;
+        }
+        double total = 0.0;
+        for (int i = 0; i < n; i++) {
+            total += a[i];
+        }
+        for (int i = 0; i < n; i++) {
+            c[i] = a[i] / total;
+        }
+        for (int i = 1; i < n; i++) {
+            d[i] = d[i - 1] + a[i];
+        }
+    }
+}`
+    },
+    '50': {
+      title: 'Java — 50% Parallelizable (1 RAW, 1 Safe)',
+      loops: [
+        { fn: 'scale()',  dep: 'None', status: 'safe',    note: 'b[i] = a[i]*2 — independent' },
+        { fn: 'prefix()', dep: 'RAW',  status: 'blocked', note: 'a[i] = a[i-1]+b[i] — loop-carried RAW' },
+      ],
+      code: `
+public class Process {
+    public static void process(double[] a, double[] b) {
+        int n = a.length;
+        for (int i = 0; i < n; i++) {
+            b[i] = a[i] * 2.0;
+        }
+        for (int i = 1; i < n; i++) {
+            a[i] = a[i - 1] + b[i];
+        }
+    }
+}`
+    }
+  },
+
+  waw: {
+    '100': {
+      title: 'Java — 100% Parallelizable (No WAW — Indexed Writes)',
+      loops: [
+        { fn: 'scale()',  dep: 'None',      status: 'safe', note: 'b[i] = a[i]*2 — indexed write, no WAW' },
+        { fn: 'square()', dep: 'None',      status: 'safe', note: 'c[i] = a[i]*a[i] — indexed write, no WAW' },
+        { fn: 'sum()',    dep: 'Reduction', status: 'safe', note: 'total += a[i] — reduction, not WAW' },
+      ],
+      code: `// No WAW: every write uses a unique index b[i], c[i]
+// total uses reduction — not WAW because it is associative accumulation
+public class NoWAW {
+    public static void process(double[] a, double[] b, double[] c) {
+        int n = a.length;
+        for (int i = 0; i < n; i++) {
+            b[i] = a[i] * 2.0;
+        }
+        for (int i = 0; i < n; i++) {
+            c[i] = a[i] * a[i];
+        }
+        double total = 0.0;
+        for (int i = 0; i < n; i++) {
+            total += a[i];
+        }
+    }
+}`
+    },
+    '75': {
+      title: 'Java — 75% Parallelizable (1 WAW Dependency)',
+      loops: [
+        { fn: 'scale()',  dep: 'None',      status: 'safe',    note: 'b[i] = a[i]*2 — indexed, no WAW' },
+        { fn: 'square()', dep: 'None',      status: 'safe',    note: 'c[i] = a[i]*a[i] — indexed, no WAW' },
+        { fn: 'sum()',    dep: 'Reduction', status: 'safe',    note: 'total += a[i] — reduction' },
+        { fn: 'last()',   dep: 'WAW',       status: 'blocked', note: 'last = a[i] — scalar WAW' },
+      ],
+      code: `public class WithWAW {
+    public static void process(double[] a, double[] b, double[] c) {
+        int n = a.length;
+        for (int i = 0; i < n; i++) {
+            b[i] = a[i] * 2.0;
+        }
+        for (int i = 0; i < n; i++) {
+            c[i] = a[i] * a[i];
+        }
+        double total = 0.0;
+        for (int i = 0; i < n; i++) {
+            total += a[i];
+        }
+        double last = 0.0;
+        for (int i = 0; i < n; i++) {
+            last = a[i];
+        }
+    }
+}`
+    },
+    '50': {
+      title: 'Java — 50% Parallelizable (1 WAW, 1 Safe)',
+      loops: [
+        { fn: 'scale()', dep: 'None', status: 'safe',    note: 'b[i] = a[i]*2 — indexed write' },
+        { fn: 'last()',  dep: 'WAW',  status: 'blocked', note: 'last = a[i] — scalar WAW' },
+      ],
+      code: `// Fix for WAW: change  last = a[i]  to  lastArr[i] = a[i]
+// Then each iteration writes to a unique slot — no WAW.
+public class WAWExample {
+    public static void process(double[] a, double[] b) {
+        int n = a.length;
+        for (int i = 0; i < n; i++) {
+            b[i] = a[i] * 2.0;
+        }
+        double last = 0.0;
+        for (int i = 0; i < n; i++) {
+            last = a[i];
+                                           // write to same scalar 'last'
+        }
+    }
+}`
+    }
+  },
+
+  recurrence: {
+    '100': {
+      title: 'Java — 100% Parallelizable (No Recurrence)',
+      loops: [
+        { fn: 'scale()', dep: 'None',      status: 'safe', note: 'b[i] = a[i]*2 — no recurrence' },
+        { fn: 'sum()',   dep: 'Reduction', status: 'safe', note: 'total += a[i] — reduction, not recurrence' },
+        { fn: 'norm()',  dep: 'None',      status: 'safe', note: 'c[i] = a[i]/total — no recurrence' },
+      ],
+      code: `// No recurrence: no loop reads a value written by a previous iteration
+// using an offset index like a[i-1] or a[i-2]
+public class Process {
+    public static void process(double[] a, double[] b, double[] c) {
+        int n = a.length;
+        for (int i = 0; i < n; i++) {
+            b[i] = a[i] * 2.0;
+        }
+        double total = 0.0;
+        for (int i = 0; i < n; i++) {
+            total += a[i];
+        }
+        for (int i = 0; i < n; i++) {
+            c[i] = a[i] / total;
+        }
+    }
+}`
+    },
+    '75': {
+      title: 'Java — 75% Parallelizable (1 Recurrence)',
+      loops: [
+        { fn: 'scale()', dep: 'None',       status: 'safe',    note: 'b[i] = a[i]*2 — independent' },
+        { fn: 'sum()',   dep: 'Reduction',  status: 'safe',    note: 'total += a[i] — reduction' },
+        { fn: 'norm()',  dep: 'None',       status: 'safe',    note: 'c[i] = a[i]/total — independent' },
+        { fn: 'fib()',   dep: 'Recurrence', status: 'blocked', note: 'fib[i] = fib[i-1]+fib[i-2] — recurrence' },
+      ],
+      code: `public class Process {
+    public static void process(double[] a, double[] b, double[] c, long[] fib) {
+        int n = a.length;
+        for (int i = 0; i < n; i++) {
+            b[i] = a[i] * 2.0;
+        }
+        double total = 0.0;
+        for (int i = 0; i < n; i++) {
+            total += a[i];
+        }
+        for (int i = 0; i < n; i++) {
+            c[i] = a[i] / total;
+        }
+        fib[0] = 0; fib[1] = 1;
+        for (int i = 2; i < n; i++) {
+            fib[i] = fib[i-1] + fib[i-2];
+        }
+    }
+}`
+    },
+    '50': {
+      title: 'Java — 50% Parallelizable (1 Recurrence, 1 Safe)',
+      loops: [
+        { fn: 'scale()',  dep: 'None',       status: 'safe',    note: 'b[i] = a[i]*2 — independent' },
+        { fn: 'prefix()', dep: 'Recurrence', status: 'blocked', note: 'a[i] = a[i-1]+b[i] — recurrence (prefix sum)' },
+      ],
+      code: `// Recurrence: a[i] = a[i-1] + b[i]
+// Each iteration depends on the result of the previous — a chain of dependencies.
+// Fix: use Arrays.parallelPrefix() for a parallel prefix-sum.
+public class Process {
+    public static void process(double[] a, double[] b) {
+        int n = a.length;
+        for (int i = 0; i < n; i++) {
+            b[i] = a[i] * 2.0;
+        }
+        for (int i = 1; i < n; i++) {
+            a[i] = a[i - 1] + b[i];
+        }
+    }
+}`
+    }
+  },
+
+  alldeps: {
+    '100': {
+      title: 'Java — 50% Parallelizable (All Dependency Types)',
+      loops: [
+        { fn: 'scale()',  dep: 'None',      status: 'safe',    note: 'b[i] = a[i]*2 — independent' },
+        { fn: 'sum()',    dep: 'Reduction', status: 'safe',    note: 'total += a[i] — reduction' },
+        { fn: 'prefix()', dep: 'RAW',       status: 'blocked', note: 'c[i] = c[i-1]+a[i] — loop-carried RAW' },
+        { fn: 'last()',   dep: 'WAW',       status: 'blocked', note: 'last = a[i] — scalar WAW' },
+      ],
+      code: `public class AllDeps {
+    public static void process(double[] a, double[] b, double[] c) {
+        int n = a.length;
+        for (int i = 0; i < n; i++) {
+            b[i] = a[i] * 2.0;
+        }
+        double total = 0.0;
+        for (int i = 0; i < n; i++) {
+            total += a[i];
+        }
+        for (int i = 1; i < n; i++) {
+            c[i] = c[i - 1] + a[i];
+        }
+        double last = 0.0;
+        for (int i = 0; i < n; i++) {
+            last = a[i];
+        }
+    }
+}`
+    },
+    '0': {
+      title: 'Java — 0% Parallelizable (All Loops Blocked)',
+      loops: [
+        { fn: 'prefixSum()',  dep: 'RAW',       status: 'blocked', note: 'a[i] = a[i-1]+b[i] — loop-carried RAW' },
+        { fn: 'fibonacci()',  dep: 'Recurrence', status: 'blocked', note: 'fib[i] = fib[i-1]+fib[i-2] — recurrence' },
+      ],
+      code: `public class ZeroParallel {
+    public static void prefixSum(double[] a, double[] b) {
+        for (int i = 1; i < a.length; i++) {
+            a[i] = a[i - 1] + b[i];
+        }
+    }
+
+    public static void fibonacci(long[] fib) {
+        fib[0] = 0; fib[1] = 1;
+        for (int i = 2; i < fib.length; i++) {
+            fib[i] = fib[i - 1] + fib[i - 2];
+        }
+    }
+}`
+    }
+  }
+};
+
+// ════════════════════════════════════════════════════════════════════════════
+// PYTHON EXAMPLES
+// ════════════════════════════════════════════════════════════════════════════
+EXAMPLES.python = {
+  none: {
+    '100': {
+      title: 'Python — 100% Parallelizable (No Dependencies)',
+      loops: [
+        { fn: 'scale()',  dep: 'None', status: 'safe', note: 'b[i] = a[i] * 2.0 — unique write per iteration' },
+        { fn: 'square()', dep: 'None', status: 'safe', note: 'c[i] = a[i] * a[i] — unique write per iteration' },
+        { fn: 'copy()',   dep: 'None', status: 'safe', note: 'd[i] = a[i] + 1.0 — unique write per iteration' },
+      ],
+      code: `def process(a, n):
+    b = [0.0] * n
+    c = [0.0] * n
+    d = [0.0] * n
+
+    for i in range(n):
+        b[i] = a[i] * 2.0
+
+    for i in range(n):
+        c[i] = a[i] * a[i]
+
+    for i in range(n):
+        d[i] = a[i] + 1.0
+
+    return b, c, d`
+    },
+    '75': {
+      title: 'Python — 75% Parallelizable (Mostly Independent)',
+      loops: [
+        { fn: 'scale()',  dep: 'None', status: 'safe',    note: 'b[i] = a[i] * 2.0 — independent' },
+        { fn: 'square()', dep: 'None', status: 'safe',    note: 'c[i] = a[i] * a[i] — independent' },
+        { fn: 'copy()',   dep: 'None', status: 'safe',    note: 'd[i] = a[i] + 1.0 — independent' },
+        { fn: 'prefix()', dep: 'RAW',  status: 'blocked', note: 'e[i] = e[i-1] + a[i] — loop-carried RAW' },
+      ],
+      code: `def process(a, n):
+    b = [0.0] * n
+    c = [0.0] * n
+    d = [0.0] * n
+    e = [0.0] * n
+
+    for i in range(n):
+        b[i] = a[i] * 2.0
+
+    for i in range(n):
+        c[i] = a[i] * a[i]
+
+    for i in range(n):
+        d[i] = a[i] + 1.0
+
+    for i in range(1, n):
+        e[i] = e[i - 1] + a[i]
+
+    return b, c, d, e`
+    },
+    '50': {
+      title: 'Python — 50% Parallelizable (Half Independent)',
+      loops: [
+        { fn: 'scale()',  dep: 'None', status: 'safe',    note: 'b[i] = a[i] * 2.0 — independent' },
+        { fn: 'prefix()', dep: 'RAW',  status: 'blocked', note: 'a[i] = a[i-1] + b[i] — loop-carried RAW' },
+      ],
+      code: `def process(a, n):
+    b = [0.0] * n
+
+    for i in range(n):
+        b[i] = a[i] * 2.0
+
+    for i in range(1, n):
+        a[i] = a[i - 1] + b[i]
+
+    return a, b`
+    }
+  },
+
+  reduction: {
+    '100': {
+      title: 'Python — 100% Parallelizable (All Reductions)',
+      loops: [
+        { fn: 'sum()',     dep: 'Reduction', status: 'safe', note: 'total += a[i] — safe reduction (+)' },
+        { fn: 'product()', dep: 'Reduction', status: 'safe', note: 'prod *= a[i] — safe reduction (*)' },
+        { fn: 'max_val()', dep: 'Reduction', status: 'safe', note: 'mx = max(mx, a[i]) — safe reduction (max)' },
+      ],
+      code: `# All loops use reduction patterns — safe to parallelize
+# Python equivalent: use functools.reduce or multiprocessing.Pool with map+reduce
+def compute(a, n):
+    total = 0.0
+    for i in range(n):
+        total += a[i]              # PARALLELIZABLE — reduction(+:total)
+
+    prod = 1.0
+    for i in range(n):
+        prod *= a[i]               # PARALLELIZABLE — reduction(*:prod)
+
+    mx = a[0]
+    for i in range(n):
+        if a[i] > mx:
+            mx = a[i]              # PARALLELIZABLE — reduction(max:mx)
+
+    return total, prod, mx`
+    },
+    '75': {
+      title: 'Python — 75% Parallelizable (Reductions + 1 Blocked)',
+      loops: [
+        { fn: 'sum()',     dep: 'Reduction', status: 'safe',    note: 'total += a[i] — reduction' },
+        { fn: 'product()', dep: 'Reduction', status: 'safe',    note: 'prod *= a[i] — reduction' },
+        { fn: 'scale()',   dep: 'None',      status: 'safe',    note: 'b[i] = a[i]*2 — independent' },
+        { fn: 'prefix()',  dep: 'RAW',       status: 'blocked', note: 'c[i] = c[i-1]+a[i] — loop-carried RAW' },
+      ],
+      code: `def compute(a, n):
+    b = [0.0] * n
+    c = [0.0] * n
+
+    total = 0.0
+    for i in range(n):
+        total += a[i]                  # PARALLELIZABLE — reduction
+
+    prod = 1.0
+    for i in range(n):
+        prod *= a[i]                   # PARALLELIZABLE — reduction
+
+    for i in range(n):
+        b[i] = a[i] * 2.0             # PARALLELIZABLE — independent
+
+    for i in range(1, n):
+        c[i] = c[i - 1] + a[i]        # NOT PARALLELIZABLE — loop-carried RAW
+
+    return total, prod, b, c`
+    },
+    '50': {
+      title: 'Python — 50% Parallelizable (Reduction + Blocked)',
+      loops: [
+        { fn: 'sum()',    dep: 'Reduction', status: 'safe',    note: 'total += a[i] — reduction' },
+        { fn: 'prefix()', dep: 'RAW',       status: 'blocked', note: 'b[i] = b[i-1]+a[i] — loop-carried RAW' },
+      ],
+      code: `def compute(a, n):
+    b = [0.0] * n
+
+    total = 0.0
+    for i in range(n):
+        total += a[i]                  # PARALLELIZABLE — reduction(+:total)
+
+    for i in range(1, n):
+        b[i] = b[i - 1] + a[i]        # NOT PARALLELIZABLE — b[i] reads b[i-1]
+
+    return total, b`
+    }
+  },
+
+  raw: {
+    '100': {
+      title: 'Python — 100% Parallelizable (No RAW — Safe Writes)',
+      loops: [
+        { fn: 'scale()', dep: 'None',      status: 'safe', note: 'b[i] = a[i]*2 — unique index, no RAW' },
+        { fn: 'sum()',   dep: 'Reduction', status: 'safe', note: 'total += a[i] — reduction, not RAW' },
+        { fn: 'norm()',  dep: 'None',      status: 'safe', note: 'c[i] = a[i]/total — reads scalar only' },
+      ],
+      code: `def process(a, n):
+    b = [0.0] * n
+    c = [0.0] * n
+
+    for i in range(n):
+        b[i] = a[i] * 2.0             # PARALLELIZABLE — no RAW
+
+    total = 0.0
+    for i in range(n):
+        total += a[i]                  # PARALLELIZABLE — reduction, not RAW
+
+    for i in range(n):
+        c[i] = a[i] / total            # PARALLELIZABLE — total is read-only scalar
+
+    return b, c`
+    },
+    '75': {
+      title: 'Python — 75% Parallelizable (1 RAW Dependency)',
+      loops: [
+        { fn: 'scale()',  dep: 'None',      status: 'safe',    note: 'b[i] = a[i]*2 — independent' },
+        { fn: 'sum()',    dep: 'Reduction', status: 'safe',    note: 'total += a[i] — reduction' },
+        { fn: 'norm()',   dep: 'None',      status: 'safe',    note: 'c[i] = a[i]/total — independent' },
+        { fn: 'prefix()', dep: 'RAW',       status: 'blocked', note: 'd[i] = d[i-1]+a[i] — loop-carried RAW' },
+      ],
+      code: `def process(a, n):
+    b = [0.0] * n
+    c = [0.0] * n
+    d = [0.0] * n
+
+    for i in range(n):
+        b[i] = a[i] * 2.0             # PARALLELIZABLE
+
+    total = 0.0
+    for i in range(n):
+        total += a[i]                  # PARALLELIZABLE — reduction
+
+    for i in range(n):
+        c[i] = a[i] / total            # PARALLELIZABLE
+
+    for i in range(1, n):
+        d[i] = d[i - 1] + a[i]        # NOT PARALLELIZABLE — RAW: d[i] reads d[i-1]
+
+    return b, c, d`
+    },
+    '50': {
+      title: 'Python — 50% Parallelizable (1 RAW, 1 Safe)',
+      loops: [
+        { fn: 'scale()',  dep: 'None', status: 'safe',    note: 'b[i] = a[i]*2 — independent' },
+        { fn: 'prefix()', dep: 'RAW',  status: 'blocked', note: 'a[i] = a[i-1]+b[i] — loop-carried RAW' },
+      ],
+      code: `# RAW dependency: a[i] = a[i-1] + b[i]
+# Iteration i reads a[i-1] which was written by iteration i-1.
+# Fix: use itertools.accumulate() for a functional prefix-sum.
+def process(a, n):
+    b = [0.0] * n
+
+    for i in range(n):
+        b[i] = a[i] * 2.0             # PARALLELIZABLE — no dependency
+
+    for i in range(1, n):
+        a[i] = a[i - 1] + b[i]        # NOT PARALLELIZABLE — RAW on a[i-1]
+
+    return a, b`
+    }
+  },
+
+  waw: {
+    '100': {
+      title: 'Python — 100% Parallelizable (No WAW — Indexed Writes)',
+      loops: [
+        { fn: 'scale()',  dep: 'None',      status: 'safe', note: 'b[i] = a[i]*2 — indexed write, no WAW' },
+        { fn: 'square()', dep: 'None',      status: 'safe', note: 'c[i] = a[i]*a[i] — indexed write, no WAW' },
+        { fn: 'sum()',    dep: 'Reduction', status: 'safe', note: 'total += a[i] — reduction, not WAW' },
+      ],
+      code: `def process(a, n):
+    b = [0.0] * n
+    c = [0.0] * n
+
+    for i in range(n):
+        b[i] = a[i] * 2.0
+
+    for i in range(n):
+        c[i] = a[i] * a[i]
+
+    total = 0.0
+    for i in range(n):
+        total += a[i]
+
+    return b, c, total`
+    },
+    '75': {
+      title: 'Python — 75% Parallelizable (1 WAW Dependency)',
+      loops: [
+        { fn: 'scale()',  dep: 'None',      status: 'safe',    note: 'b[i] = a[i]*2 — indexed, no WAW' },
+        { fn: 'square()', dep: 'None',      status: 'safe',    note: 'c[i] = a[i]*a[i] — indexed, no WAW' },
+        { fn: 'sum()',    dep: 'Reduction', status: 'safe',    note: 'total += a[i] — reduction' },
+        { fn: 'last()',   dep: 'WAW',       status: 'blocked', note: 'last = a[i] — scalar WAW' },
+      ],
+      code: `def process(a, n):
+    b = [0.0] * n
+    c = [0.0] * n
+
+    for i in range(n):
+        b[i] = a[i] * 2.0
+
+    for i in range(n):
+        c[i] = a[i] * a[i]
+
+    total = 0.0
+    for i in range(n):
+        total += a[i]
+
+    last = 0.0
+    for i in range(n):
+        last = a[i]
+
+    return b, c, total, last`
+    },
+    '50': {
+      title: 'Python — 50% Parallelizable (1 WAW, 1 Safe)',
+      loops: [
+        { fn: 'scale()', dep: 'None', status: 'safe',    note: 'b[i] = a[i]*2 — indexed write' },
+        { fn: 'last()',  dep: 'WAW',  status: 'blocked', note: 'last = a[i] — scalar WAW' },
+      ],
+      code: `def process(a, n):
+    b = [0.0] * n
+
+    for i in range(n):
+        b[i] = a[i] * 2.0
+
+    last = 0.0
+    for i in range(n):
+        last = a[i]
+
+    return b, last`
+    }
+  },
+
+  recurrence: {
+    '100': {
+      title: 'Python — 100% Parallelizable (No Recurrence)',
+      loops: [
+        { fn: 'scale()', dep: 'None',      status: 'safe', note: 'b[i] = a[i]*2 — no recurrence' },
+        { fn: 'sum()',   dep: 'Reduction', status: 'safe', note: 'total += a[i] — reduction, not recurrence' },
+        { fn: 'norm()',  dep: 'None',      status: 'safe', note: 'c[i] = a[i]/total — no recurrence' },
+      ],
+      code: `def process(a, n):
+    b = [0.0] * n
+    c = [0.0] * n
+
+    for i in range(n):
+        b[i] = a[i] * 2.0             # PARALLELIZABLE — no a[i-1] access
+
+    total = 0.0
+    for i in range(n):
+        total += a[i]                  # PARALLELIZABLE — reduction
+
+    for i in range(n):
+        c[i] = a[i] / total            # PARALLELIZABLE — reads scalar only
+
+    return b, c`
+    },
+    '75': {
+      title: 'Python — 75% Parallelizable (1 Recurrence)',
+      loops: [
+        { fn: 'scale()', dep: 'None',       status: 'safe',    note: 'b[i] = a[i]*2 — independent' },
+        { fn: 'sum()',   dep: 'Reduction',  status: 'safe',    note: 'total += a[i] — reduction' },
+        { fn: 'norm()',  dep: 'None',       status: 'safe',    note: 'c[i] = a[i]/total — independent' },
+        { fn: 'fib()',   dep: 'Recurrence', status: 'blocked', note: 'fib[i] = fib[i-1]+fib[i-2] — recurrence' },
+      ],
+      code: `def process(a, n):
+    b = [0.0] * n
+    c = [0.0] * n
+    fib = [0] * n
+
+    for i in range(n):
+        b[i] = a[i] * 2.0             # PARALLELIZABLE
+
+    total = 0.0
+    for i in range(n):
+        total += a[i]                  # PARALLELIZABLE — reduction
+
+    for i in range(n):
+        c[i] = a[i] / total            # PARALLELIZABLE
+
+    fib[0] = 0
+    if n > 1:
+        fib[1] = 1
+    for i in range(2, n):
+        fib[i] = fib[i-1] + fib[i-2]  # NOT PARALLELIZABLE — recurrence relation
+
+    return b, c, fib`
+    },
+    '50': {
+      title: 'Python — 50% Parallelizable (1 Recurrence, 1 Safe)',
+      loops: [
+        { fn: 'scale()',  dep: 'None',       status: 'safe',    note: 'b[i] = a[i]*2 — independent' },
+        { fn: 'prefix()', dep: 'Recurrence', status: 'blocked', note: 'a[i] = a[i-1]+b[i] — recurrence (prefix sum)' },
+      ],
+      code: `# Recurrence: a[i] = a[i-1] + b[i]
+# Each iteration depends on the result of the previous — a chain of dependencies.
+# Fix: use itertools.accumulate() for a functional prefix-sum.
+def process(a, n):
+    b = [0.0] * n
+
+    for i in range(n):
+        b[i] = a[i] * 2.0             # PARALLELIZABLE
+
+    for i in range(1, n):
+        a[i] = a[i - 1] + b[i]        # NOT PARALLELIZABLE — recurrence (prefix sum)
+
+    return a, b`
+    }
+  },
+
+  alldeps: {
+    '100': {
+      title: 'Python — 50% Parallelizable (All Dependency Types)',
+      loops: [
+        { fn: 'scale()',  dep: 'None',      status: 'safe',    note: 'b[i] = a[i]*2 — independent' },
+        { fn: 'sum()',    dep: 'Reduction', status: 'safe',    note: 'total += a[i] — reduction' },
+        { fn: 'prefix()', dep: 'RAW',       status: 'blocked', note: 'a[i] = a[i-1]+b[i] — loop-carried RAW' },
+        { fn: 'last()',   dep: 'WAW',       status: 'blocked', note: 'last = a[i] — scalar WAW' },
+      ],
+      code: `def process(a, b, n):
+    out = [0.0] * n
+    for i in range(n):
+        out[i] = a[i] * 2.0
+
+    total = 0.0
+    for i in range(n):
+        total += a[i]
+
+    for i in range(1, n):
+        a[i] = a[i - 1] + b[i]
+
+    last = 0.0
+    for i in range(n):
+        last = a[i]
+
+    return out, total, a, last`
+    },
+    '0': {
+      title: 'Python — 0% Parallelizable (All Loops Blocked)',
+      loops: [
+        { fn: 'running_sum()', dep: 'RAW',       status: 'blocked', note: 'result[i] = result[i-1]+a[i] — loop-carried RAW' },
+        { fn: 'fibonacci()',   dep: 'Recurrence', status: 'blocked', note: 'fib[i] = fib[i-1]+fib[i-2] — recurrence' },
+      ],
+      code: `def running_sum(a, n):
+    result = [0.0] * n
+    result[0] = a[0]
+    for i in range(1, n):
+        result[i] = result[i - 1] + a[i]
+    return result
+
+def fibonacci(n):
+    fib = [0] * n
+    fib[0] = 0
+    fib[1] = 1
+    for i in range(2, n):
+        fib[i] = fib[i - 1] + fib[i - 2]
+    return fib`
+    }
+  }
+};
+
+// ════════════════════════════════════════════════════════════════════════════
+// ZERO % PARALLELIZABLE EXAMPLES (dedicated section — all loops blocked)
+// ════════════════════════════════════════════════════════════════════════════
+EXAMPLES.cpp.zero = {
+  '0': {
+    title: 'C++ — 0% Parallelizable (All Loops Have Dependencies)',
+    loops: [
+      { fn: 'prefix_sum()',  dep: 'RAW',        status: 'blocked', note: 'a[i] = a[i-1]+b[i] — loop-carried RAW: iteration i reads a[i-1] written by i-1' },
+      { fn: 'fibonacci()',   dep: 'Recurrence', status: 'blocked', note: 'fib[i] = fib[i-1]+fib[i-2] — recurrence: 2-step dependency chain' },
+      { fn: 'scalar_waw()',  dep: 'WAW',        status: 'blocked', note: 'last = a[i] — WAW: all iterations overwrite same scalar' },
+    ],
+    code: `#include <vector>
+using namespace std;
+
+// LOOP 1: RAW — a[i] reads a[i-1] written by previous iteration
+// Cannot parallelize: iteration i must wait for iteration i-1 to finish
+void prefix_sum(vector<double>& a, const vector<double>& b, int n) {
+    for (int i = 1; i < n; i++) {
+        a[i] = a[i - 1] + b[i];
+    }
+}
+
+// LOOP 2: Recurrence — fib[i] depends on fib[i-1] AND fib[i-2]
+// Cannot parallelize: each value depends on two previous values
+void fibonacci(vector<long>& fib, int n) {
+    fib[0] = 0; fib[1] = 1;
+    for (int i = 2; i < n; i++) {
+        fib[i] = fib[i - 1] + fib[i - 2];
+    }
+}
+
+// LOOP 3: WAW — every iteration writes to the same scalar 'last'
+// Cannot parallelize: final value depends on execution order
+void scalar_waw(const vector<double>& a, int n, double& last) {
+    for (int i = 0; i < n; i++) {
+        last = a[i];
+    }
+}`
+  }
+};
+
+EXAMPLES.c.zero = {
+  '0': {
+    title: 'C — 0% Parallelizable (All Loops Have Dependencies)',
+    loops: [
+      { fn: 'prefix_sum()',  dep: 'RAW',        status: 'blocked', note: 'a[i] = a[i-1]+b[i] — loop-carried RAW: iteration i reads a[i-1] written by i-1' },
+      { fn: 'fibonacci()',   dep: 'Recurrence', status: 'blocked', note: 'fib[i] = fib[i-1]+fib[i-2] — recurrence: 2-step dependency chain' },
+      { fn: 'scalar_waw()',  dep: 'WAW',        status: 'blocked', note: '*last = a[i] — WAW: all iterations overwrite same scalar pointer' },
+    ],
+    code: `#include <stdlib.h>
+
+void prefix_sum(double* a, const double* b, int n) {
+    int i;
+    for (i = 1; i < n; i++) {
+        a[i] = a[i - 1] + b[i];
+    }
+}
+
+void fibonacci(long* fib, int n) {
+    int i;
+    fib[0] = 0; fib[1] = 1;
+    for (i = 2; i < n; i++) {
+        fib[i] = fib[i - 1] + fib[i - 2];
+    }
+}
+
+void scalar_waw(const double* a, int n, double* last) {
+    int i;
+    for (i = 0; i < n; i++) {
+        *last = a[i];
+    }
+}`
+  }
+};
+
+EXAMPLES.java.zero = {
+  '0': {
+    title: 'Java — 0% Parallelizable (All Loops Have Dependencies)',
+    loops: [
+      { fn: 'prefixSum()',   dep: 'RAW',        status: 'blocked', note: 'a[i] = a[i-1]+b[i] — loop-carried RAW: iteration i reads a[i-1] written by i-1' },
+      { fn: 'fibonacci()',   dep: 'Recurrence', status: 'blocked', note: 'fib[i] = fib[i-1]+fib[i-2] — recurrence: 2-step dependency chain' },
+      { fn: 'scalarWAW()',   dep: 'WAW',        status: 'blocked', note: 'last = a[i] — WAW: all iterations overwrite same local scalar' },
+    ],
+    code: `// LOOP 1: RAW — a[i] reads a[i-1] written by previous iteration
+// Cannot parallelize: iteration i must wait for iteration i-1 to finish
+public class ZeroParallel {
+
+    public static void prefixSum(double[] a, double[] b) {
+        for (int i = 1; i < a.length; i++) {
+            a[i] = a[i - 1] + b[i];
+        }
+    }
+
+    // LOOP 2: Recurrence — fib[i] depends on fib[i-1] AND fib[i-2]
+    // Cannot parallelize: each value depends on two previous values
+    public static void fibonacci(long[] fib) {
+        fib[0] = 0; fib[1] = 1;
+        for (int i = 2; i < fib.length; i++) {
+            fib[i] = fib[i - 1] + fib[i - 2];
+        }
+    }
+
+    // LOOP 3: WAW — every iteration writes to the same scalar 'last'
+    // Cannot parallelize: final value depends on execution order
+    public static double scalarWAW(double[] a) {
+        double last = 0.0;
+        for (int i = 0; i < a.length; i++) {
+            last = a[i];
+        }
+        return last;
+    }
+}`
+  }
+};
+
+EXAMPLES.python.zero = {
+  '0': {
+    title: 'Python — 0% Parallelizable (All Loops Have Dependencies)',
+    loops: [
+      { fn: 'running_sum()', dep: 'RAW',        status: 'blocked', note: 'result[i] = result[i-1]+a[i] — loop-carried RAW: iteration i reads result[i-1] written by i-1' },
+      { fn: 'fibonacci()',   dep: 'Recurrence', status: 'blocked', note: 'fib[i] = fib[i-1]+fib[i-2] — recurrence: 2-step dependency chain' },
+      { fn: 'scalar_waw()',  dep: 'WAW',        status: 'blocked', note: 'last = a[i] — WAW: all iterations overwrite same scalar variable' },
+    ],
+    code: `# LOOP 1: RAW — result[i] reads result[i-1] written by previous iteration
+# Cannot parallelize: iteration i must wait for iteration i-1 to finish
+def running_sum(a, n):
+    result = [0.0] * n
+    result[0] = a[0]
+    for i in range(1, n):
+        result[i] = result[i - 1] + a[i]  # NOT PARALLELIZABLE — RAW dependency
+    return result
+
+# LOOP 2: Recurrence — fib[i] depends on fib[i-1] AND fib[i-2]
+# Cannot parallelize: each value depends on two previous values
+def fibonacci(n):
+    fib = [0] * n
+    fib[0] = 0
+    fib[1] = 1
+    for i in range(2, n):
+        fib[i] = fib[i - 1] + fib[i - 2]  # NOT PARALLELIZABLE — recurrence
+    return fib
+
+# LOOP 3: WAW — every iteration overwrites the same scalar 'last'
+# Cannot parallelize: final value depends on execution order
+def scalar_waw(a, n):
+    last = 0.0
+    for i in range(n):
+        last = a[i]                        # NOT PARALLELIZABLE — WAW on scalar
+    return last`
+  }
+};
+
+// ════════════════════════════════════════════════════════════════════════════
+// UI LOGIC
+// ════════════════════════════════════════════════════════════════════════════
+
+function setLang(lang, btn) {
+  curLang = lang;
+  document.querySelectorAll('.lang-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function setDep(dep, btn) {
+  curDep = dep;
+  document.querySelectorAll('.dep-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  // For 'zero' dep, force rate to 0% and hide rate tabs
+  const rateTabs = document.getElementById('rate-tabs');
+  if (dep === 'zero') {
+    curRate = '0';
+    document.querySelectorAll('.rate-tab').forEach(b => b.classList.remove('active'));
+    const zeroBtn = document.querySelector('.rate-tab-zero');
+    if (zeroBtn) zeroBtn.classList.add('active');
+    rateTabs.style.opacity = '0.4';
+    rateTabs.style.pointerEvents = 'none';
+  } else {
+    rateTabs.style.opacity = '';
+    rateTabs.style.pointerEvents = '';
+    // If coming back from zero, reset to 100%
+    if (curRate === '0') {
+      curRate = '100';
+      document.querySelectorAll('.rate-tab').forEach(b => b.classList.remove('active'));
+      document.querySelector('.rate-tab:first-child').classList.add('active');
+    }
+  }
+  render();
+}
+
+function setRate(rate, btn) {
+  curRate = rate;
+  document.querySelectorAll('.rate-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function render() {
+  const container = document.getElementById('cards-container');
+  const langData = EXAMPLES[curLang];
+
+  // For 'zero' dep type, always show the '0' rate example
+  const effectiveDep  = curDep;
+  const effectiveRate = (curDep === 'zero') ? '0' : curRate;
+
+  // Check if this lang/dep combo exists
+  if (!langData || !langData[effectiveDep]) {
+    container.innerHTML = `<div class="unavailable">
+      No examples available for <strong>${LANG_LABEL[curLang]}</strong> + <strong>${effectiveDep}</strong> yet.
+    </div>`;
+    return;
+  }
+
+  const depData = langData[effectiveDep];
+  const ex = depData[effectiveRate];
+
+  if (!ex) {
+    container.innerHTML = `<div class="unavailable">
+      No example available for ${LANG_LABEL[curLang]} / ${effectiveDep} / ${effectiveRate}%.
+    </div>`;
+    return;
+  }
+
+  const info = DEP_INFO[effectiveDep] || DEP_INFO['none'];
+  const safeCount    = ex.loops.filter(l => l.status === 'safe').length;
+  const blockedCount = ex.loops.filter(l => l.status === 'blocked').length;
+  const total        = ex.loops.length;
+  const pct          = Math.round((safeCount / total) * 100);
+
+  // Rate badge
+  let rateBadgeClass, rateBadgeStyle = '';
+  if (pct === 0)        { rateBadgeClass = 'rate-0';   rateBadgeStyle = 'background:rgba(255,92,92,0.2);color:#ff5c5c'; }
+  else if (pct === 100) { rateBadgeClass = 'rate-100'; rateBadgeStyle = ''; }
+  else if (pct >= 75)   { rateBadgeClass = 'rate-75';  rateBadgeStyle = ''; }
+  else                  { rateBadgeClass = 'rate-50';  rateBadgeStyle = ''; }
+
+  const codeId   = 'code-' + Date.now();
+  const langKey  = curLang === 'cpp' ? 'cpp' : curLang === 'c' ? 'c' : curLang === 'java' ? 'java' : 'python';
+  const codeStoreKey = _storeCode(ex.code);
+
+  // Build loop table rows with clickable blocked rows
+  const tableRows = ex.loops.map((loop, idx) => {
+    const statusClass = loop.status === 'safe' ? 'loop-safe' : 'loop-blocked';
+    const statusText  = loop.status === 'safe' ? '✓ Parallelizable' : '✗ Blocked';
+    const chip = `<span class="dep-chip" style="${chipStyle(loop.dep)}">${loop.dep}</span>`;
+    const rowId = `loop-row-${codeId}-${idx}`;
+    const clickable = loop.status === 'blocked';
+    const rowStyle = clickable ? 'cursor:pointer;' : '';
+    const tooltip = clickable ? ` title="Click to see why this loop cannot be parallelized"` : '';
+    const dataAttr = clickable ? ` data-dep="${escHtml(loop.dep)}" data-fn="${escHtml(loop.fn)}" data-note="${escHtml(loop.note)}"` : '';
+    return `<tr id="${rowId}" style="${rowStyle}" ${clickable ? `onclick="showDepReason(this)"` : ''}${tooltip}${dataAttr}>
+      <td style="font-family:var(--mono);font-size:0.8rem">${escHtml(loop.fn)}</td>
+      <td>${chip}</td>
+      <td class="${statusClass}">${statusText}${clickable ? ' <span style="font-size:0.7rem;opacity:0.6">ⓘ</span>' : ''}</td>
+      <td style="color:var(--muted);font-size:0.78rem">${escHtml(loop.note)}</td>
+    </tr>`;
+  }).join('');
+
+  // Zero-percent banner
+  const zeroBanner = pct === 0 ? `
+    <div style="margin-bottom:14px;padding:14px 18px;background:rgba(255,92,92,0.08);border:1px solid rgba(255,92,92,0.4);border-radius:8px;border-left:4px solid #ff5c5c">
+      <div style="font-weight:700;color:#ff5c5c;margin-bottom:4px">⛔ 0% Parallelizable — No loops can be parallelized</div>
+      <div style="font-size:0.83rem;color:var(--muted)">Every loop in this program has a loop-carried dependency. The system correctly detects all loops as blocked. Click any blocked row in the table to see the exact reason.</div>
+    </div>` : '';
+
+  container.innerHTML = `
+    <div class="dep-info" style="background:${info.color}18;border-color:${info.color}">
+      <strong style="color:${info.color}">${escHtml(info.title)}</strong>
+      ${escHtml(info.desc)}
+    </div>
+
+    ${zeroBanner}
+
+    <div class="example-card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">${escHtml(ex.title)}</div>
+          <div class="card-meta">${safeCount} of ${total} loops parallelizable &nbsp;·&nbsp; ${blockedCount} blocked &nbsp;·&nbsp; <span style="font-size:0.75rem;color:var(--muted)">Click a blocked row to see why</span></div>
+        </div>
+        <span class="rate-badge ${rateBadgeClass}" style="${rateBadgeStyle}">${pct}% Parallel</span>
+      </div>
+
+      <table class="loop-table">
+        <thead>
+          <tr>
+            <th>Function / Loop</th>
+            <th>Dep Type</th>
+            <th>Status</th>
+            <th>Note (click blocked rows for details)</th>
+          </tr>
+        </thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+
+      <div id="dep-reason-panel-${codeId}" class="dep-reason-panel" style="display:none"></div>
+
+      <div class="code-wrap">
+        <pre class="code-block" id="${codeId}">${escHtml(ex.code)}</pre>
+        <button class="copy-btn" onclick="copyCode('${codeId}', this)">Copy</button>
+      </div>
+
+      <button class="try-btn" onclick="tryInCompiler('${codeStoreKey}', '${langKey}')">
+        ▶ Try in Compiler
+      </button>
+    </div>
+  `;
+}
+
+function showDepReason(rowEl) {
+  const row = typeof rowEl === 'string' ? document.getElementById(rowEl) : rowEl;
+  if (!row) return;
+
+  // Read loop data from data attributes
+  const loop = {
+    dep:  row.dataset.dep  || '',
+    fn:   row.dataset.fn   || '',
+    note: row.dataset.note || '',
+  };
+
+  // Find the panel (sibling of the table, inside the card)
+  const card = row.closest('.example-card');
+  const panel = card ? card.querySelector('.dep-reason-panel') : null;
+  if (!panel) return;
+
+  // Toggle off if same row clicked again
+  if (panel.dataset.activeRow === row.id && panel.style.display !== 'none') {
+    panel.style.display = 'none';
+    panel.dataset.activeRow = '';
+    document.querySelectorAll('.loop-table tr.dep-row-active').forEach(r => r.classList.remove('dep-row-active'));
+    return;
+  }
+
+  document.querySelectorAll('.loop-table tr.dep-row-active').forEach(r => r.classList.remove('dep-row-active'));
+  row.classList.add('dep-row-active');
+  panel.dataset.activeRow = row.id;
+
+  const DEP_REASONS = {
+    'RAW': {
+      icon: '🔴',
+      title: 'Read After Write (RAW) — Loop-Carried Dependency',
+      color: '#ff5c5c',
+      why: 'Iteration <strong>i</strong> reads a value that was written by iteration <strong>i−1</strong>. This creates a sequential chain: each iteration must wait for the previous one to finish before it can start.',
+      example: 'a[i] = a[i-1] + b[i]  →  iteration 3 needs a[2], which iteration 2 hasn\'t written yet if they run in parallel.',
+      fix: 'Use a prefix-sum (scan) algorithm, or restructure to eliminate the cross-iteration read. In C/C++: <code>std::partial_sum()</code>. In Java: <code>Arrays.parallelPrefix()</code>. In Python: <code>itertools.accumulate()</code>.'
+    },
+    'WAW': {
+      icon: '🟠',
+      title: 'Write After Write (WAW) — Output Dependency',
+      color: '#ff8a8a',
+      why: 'Multiple iterations all write to the <strong>same scalar variable</strong>. In parallel execution, the final value depends on which thread finishes last — this is a race condition.',
+      example: 'last = a[i]  →  if threads run in any order, the final value of "last" is unpredictable.',
+      fix: 'Replace the scalar with an indexed array: <code>last[i] = a[i]</code>. Each iteration then writes to its own unique slot — no WAW.'
+    },
+    'Recurrence': {
+      icon: '🟡',
+      title: 'Recurrence — Sequential Dependency Chain',
+      color: '#ffc107',
+      why: 'Each iteration depends on the result of the <strong>previous iteration</strong> through an offset index (e.g. <code>a[i-1]</code>, <code>a[i-2]</code>). This forms a chain that cannot be broken without algorithmic restructuring.',
+      example: 'fib[i] = fib[i-1] + fib[i-2]  →  to compute fib[5] you need fib[4] and fib[3], which need fib[3] and fib[2], etc.',
+      fix: 'Use a parallel scan / prefix-sum algorithm. For Fibonacci specifically, use matrix exponentiation or closed-form (Binet\'s formula) for O(log n) parallel computation.'
+    },
+    'None': {
+      icon: '🟢',
+      title: 'No Dependency — Safe to Parallelize',
+      color: '#4caf50',
+      why: 'Each iteration writes to a unique memory location and does not read values written by other iterations.',
+      example: 'b[i] = a[i] * 2.0  →  iteration 3 writes b[3], iteration 7 writes b[7] — completely independent.',
+      fix: 'No fix needed. Add <code>#pragma omp parallel for</code> (C/C++) or use parallel streams (Java) to parallelize.'
+    },
+    'Reduction': {
+      icon: '🔵',
+      title: 'Reduction — Safe Accumulation',
+      color: '#00d4aa',
+      why: 'This is a reduction pattern (sum, product, max, etc.) which appears to have a dependency but is actually safe. The operator is associative and commutative, so partial results from threads can be combined at the end.',
+      example: 'total += a[i]  →  split into chunks: thread 1 sums a[0..n/2], thread 2 sums a[n/2..n], then add the two partial sums.',
+      fix: 'Use <code>#pragma omp parallel for reduction(+:total)</code> in C/C++, or <code>Arrays.stream(a).sum()</code> in Java.'
+    }
+  };
+
+  const reason = DEP_REASONS[loop.dep] || DEP_REASONS['RAW'];
+
+  panel.style.display = 'block';
+  panel.innerHTML = `
+    <div class="dep-reason-content" style="border-color:${reason.color}">
+      <div class="dep-reason-header">
+        <span style="font-size:1.2rem">${reason.icon}</span>
+        <strong style="color:${reason.color}">${reason.title}</strong>
+        <button class="dep-reason-close" onclick="this.closest('.dep-reason-panel').style.display='none'">✕</button>
+      </div>
+      <div class="dep-reason-body">
+        <div class="dep-reason-section">
+          <div class="dep-reason-label">Loop: <code style="color:${reason.color}">${escHtml(loop.fn)}</code></div>
+          <div class="dep-reason-note">${escHtml(loop.note)}</div>
+        </div>
+        <div class="dep-reason-section">
+          <div class="dep-reason-label">Why it can't be parallelized:</div>
+          <div class="dep-reason-text">${reason.why}</div>
+        </div>
+        <div class="dep-reason-section">
+          <div class="dep-reason-label">Example of the problem:</div>
+          <div class="dep-reason-example">${escHtml(reason.example)}</div>
+        </div>
+        <div class="dep-reason-section">
+          <div class="dep-reason-label">How to fix it:</div>
+          <div class="dep-reason-text">${reason.fix}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function copyCode(id, btn) {
+  const pre = document.getElementById(id);
+  if (!pre) return;
+  navigator.clipboard.writeText(pre.textContent).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    btn.style.color = 'var(--accent2)';
+    setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 1500);
+  });
+}
+
+// ── Example code store (avoids inline JSON in onclick attrs) ─────────────────
+const _exCodeStore = {};
+let _exCodeIdx = 0;
+
+function _storeCode(code) {
+  const key = 'ex_' + (_exCodeIdx++);
+  _exCodeStore[key] = code;
+  return key;
+}
+
+function tryInCompiler(keyOrCode, lang) {
+  const code = _exCodeStore[keyOrCode] !== undefined ? _exCodeStore[keyOrCode] : keyOrCode;
+  sessionStorage.setItem('ap_example_code', code);
+  sessionStorage.setItem('ap_example_lang', lang);
+  window.location.href = '/';
+}
+
+// Initial render
+render();
+</script>
+</body>
+</html>
